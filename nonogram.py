@@ -1,27 +1,22 @@
-#comment
-'''
-multi
-line 
-comment
-'''
-x = 5
-y = "hello y"
-v = 'hello v'   #same
-print(type(x))
-x=5.6
-print(type(x))
-z = float(3)    #declaration is not needed
-print(z)
-print(type(z))
+import re
+print("hello","\n")
 
-if x>2:
-    print("hello if")
-    print(y)
-x=y=z = 5
-print(x,y,z)
-x,y,z = 2,4,"orange"
-print(x,y,z)
+def find_number_of_rows_columns():
+    with open("instruction.txt","r") as file:
+        for line in file:
+            if "rows" in line:
+                number_of_rows = int(re.search(r'\d+', line)[0])
+            if "columns" in line:
+                number_of_columns = int(re.search(r'\d+', line)[0])
+    return [number_of_rows,number_of_columns]
 
-fruit = ["apple", "banana", "cherry"]
-x,y,z = fruit
-print(x,y,z)
+number_of_rows = find_number_of_rows_columns()[0]
+number_of_columns = find_number_of_rows_columns()[1]
+
+
+print(type(number_of_rows))
+print(number_of_rows)
+print(type(number_of_columns))
+print(number_of_columns)
+
+

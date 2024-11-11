@@ -1,5 +1,4 @@
 import re
-print("hello","\n")
 
 def find_number_of_rows():
     with open("instruction.txt","r") as file:
@@ -61,5 +60,6 @@ columns_instruction = convert_raw_instruction_to_2d_array(columns_raw_instructio
 
 print(number_of_rows)
 print(number_of_columns)
-print(rows_instruction)
-print(columns_instruction)
+[print(x) for x in rows_instruction]
+print()
+[print(x) for x in columns_instruction]

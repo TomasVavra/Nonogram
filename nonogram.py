@@ -57,9 +57,27 @@ rows_raw_instruction = find_raw_instruction_rows(number_of_rows)
 columns_raw_instruction = find_raw_instruction_columns(number_of_rows)
 rows_instruction = convert_raw_instruction_to_2d_array(rows_raw_instruction)
 columns_instruction = convert_raw_instruction_to_2d_array(columns_raw_instruction)
-
+'''
 print(number_of_rows)
 print(number_of_columns)
 [print(x) for x in rows_instruction]
 print()
 [print(x) for x in columns_instruction]
+'''
+
+sum_row = [0 for x in range(number_of_rows)]
+for idx, row in enumerate(rows_instruction):
+    for item in row:
+        sum_row [idx] += int(item)
+
+print(sum_row)
+
+
+matrix = [[0 for row in range(number_of_rows)] for column in range(number_of_columns)]
+
+for row in range(number_of_rows):
+    for column in range(number_of_columns):
+        matrix[row][column] = "#"
+
+#for row in matrix:
+#   print(row)

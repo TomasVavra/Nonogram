@@ -86,14 +86,19 @@ matrix = [[row for row in range(number_of_rows)] for column in range(number_of_c
 
 #overlap
 for row_index, row in enumerate(rows_instruction):
-    for item in row:
-        overlap = int(item) - number_of_rows + sum_row[int(row_index)]
+    offset = 0
+    for item_in_instruction in row:
+        overlap = int(item_in_instruction) - number_of_rows + sum_row[int(row_index)]
+        print(overlap, end=" ")
         if overlap > 0:
-            for matrix_item in matrix[row_index]:
-                matrix_item = "#"
-                print(matrix_item, end=" ")
-            print()
+            for i in range(offset + int(item_in_instruction) - overlap, offset + int(item_in_instruction)):     #paint overlap in row
+                matrix[row_index][i] = "#"
+            # for matrix_item in matrix[row_index]:
+            #     matrix_item = "#"
+                #print(matrix_item, end=" ")
+        offset += int(item_in_instruction) + 1
+    print()
 
 
-# for row in matrix:
-#   print(row)
+for idx, row in enumerate(matrix):
+  print(idx, row)

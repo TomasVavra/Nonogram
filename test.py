@@ -1,13 +1,12 @@
-with open("instruction.txt", "r") as file:
-    columns_instruction = []
-    counter = 0
-    number_of_columns = 15
-    start_counter = False
-    for line in file:
-        if "columns" in line:
-            start_counter = True
-        if start_counter:
-            if counter>0 and counter <= number_of_columns:
-                columns_instruction.append(line.strip())
-            counter +=1
-print(columns_instruction)
+
+from typing import List
+
+def add_em_up(nums: List[int]) -> int:
+    tot = 0
+    for num in nums:
+        tot += num
+    return tot
+mylist = [5,6,7,8]
+sum = add_em_up(mylist)
+print(sum)
+

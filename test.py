@@ -1,7 +1,7 @@
 
-from typing import List
+#from typing import List
 
-def add_em_up(nums: List[int]) -> int:
+def add_em_up(nums: 'list'=[]) -> int:
     tot = 0
     for num in nums:
         tot += num

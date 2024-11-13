@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List     #for Function Annotations in python 3.8, not
 
 def find_number_of_rows() -> int:
     with open("instruction.txt","r") as file:
@@ -8,7 +8,7 @@ def find_number_of_rows() -> int:
                 result = int(re.search(r'\d+', line)[0])
     return result
 
-def find_number_of_columns() -> int:
+def find_number_of_cols() -> int:
     with open("instruction.txt", "r") as file:
         for line in file:
             if "columns" in line:
@@ -29,7 +29,7 @@ def find_raw_instruction_rows(l_number_of_rows: int):
                 counter += 1
     return result
 
-def find_raw_instruction_columns(l_number_of_columns: int) -> List[str]:
+def find_raw_instruction_cols(l_number_of_cols: int) -> List[str]:
     with open("instruction.txt", "r") as file:
         result = []
         counter = 0
@@ -38,7 +38,7 @@ def find_raw_instruction_columns(l_number_of_columns: int) -> List[str]:
             if "columns" in line:
                 start_counter = True
             if start_counter:
-                if 0 < counter <= l_number_of_columns:
+                if 0 < counter <= l_number_of_cols:
                     result.append(line.strip())
                 counter += 1
     return result
@@ -50,9 +50,9 @@ def convert_raw_instruction_to_2d_array(l_raw_instruction: List[str]) -> List[Li
         result.append(re.findall(r'\d+', line))
     return result
 
-def make_sum_row_or_column(l_number_of_rows_or_columns: int, l_rows_or_columns_instruction: List[List[int]]) -> List[int]:
-    result = [0 for row in range(l_number_of_rows_or_columns)]
-    for index, row in enumerate(l_rows_or_columns_instruction):
+def make_sum_row_or_col(l_number_of_rows_or_cols: int, l_rows_or_cols_instruction: List[List[int]]) -> List[int]:
+    result = [0 for row in range(l_number_of_rows_or_cols)]
+    for index, row in enumerate(l_rows_or_cols_instruction):
         numbers = 0
         for item in row:
             result [index] += int(item)
@@ -60,34 +60,63 @@ def make_sum_row_or_column(l_number_of_rows_or_columns: int, l_rows_or_columns_i
         result[index] += numbers - 1     #numbers -1 = spaces
     return result
 
-def overlap (l_matrix: List[List[int]], l_number_of_rows_or_columns: int, l_rows_or_columns_instruction: List[List[int]], sum_row_or_column: List[int]) -> List[List[str]]:
-    for row_index, row in enumerate(l_rows_or_columns_instruction):
+# number_of_cols for rows_instruction to iterate through item in 1 row
+def paint_overlap (l_matrix: List[List[int]], l_number_of_rows_or_cols: int, l_rows_or_cols_instruction: List[List[int]], sum_row_or_col: List[int], is_row: bool) -> None:
+    for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
         offset = 0
-        for item_in_instruction in row:
-            overlap = int(item_in_instruction) - l_number_of_rows_or_columns + sum_row[int(row_index)]
-            # print(overlap, end=" ")
+        for item_in_instruction in row_or_col:
+            overlap = int(item_in_instruction) - l_number_of_rows_or_cols + sum_row_or_col[int(row_or_col_index)]
             if overlap > 0:
                 for i in range(offset + int(item_in_instruction) - overlap, offset + int(item_in_instruction)):     #paint overlap in row
-                    l_matrix[row_index][i] = "#"
+                    if is_row:
+                        l_matrix[row_or_col_index][i] = "#"
+                    else:
+                        l_matrix[i][row_or_col_index] = "#"
             offset += int(item_in_instruction) + 1
+
+# big mes in rows and cols
+def is_finished (l_matrix: List[List[int]], l_number_of_rows_or_cols: int, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
+    for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
+        for item_in_instruction in row_or_col:
+            counter = 0
+            for i in range(l_number_of_rows_or_cols):
+                if is_row:
+                    counter = counter + 1 if l_matrix[row_or_col_index][i] == "#" else 0
+                    if counter == item_in_instruction:
+                        l_matrix[row_or_col_index][i+1] == "."
+                else:
+                    counter +=1 if l_matrix[i][row_or_col_index] == "#" else 0
+                    if counter == item_in_instruction:
+                        l_matrix[i+1][row_or_col_index] == "."
+
+
+
+
+
+
+
 
 
 number_of_rows = find_number_of_rows()
-number_of_columns = find_number_of_columns()
+number_of_cols = find_number_of_cols()
 rows_raw_instruction = find_raw_instruction_rows(number_of_rows)
-columns_raw_instruction = find_raw_instruction_columns(number_of_rows)
+cols_raw_instruction = find_raw_instruction_cols(number_of_rows)
 rows_instruction = convert_raw_instruction_to_2d_array(rows_raw_instruction)
-columns_instruction = convert_raw_instruction_to_2d_array(columns_raw_instruction)
-sum_row = make_sum_row_or_column(number_of_rows,rows_instruction)
-sum_column = make_sum_row_or_column(number_of_columns,columns_instruction)
+cols_instruction = convert_raw_instruction_to_2d_array(cols_raw_instruction)
+sum_row = make_sum_row_or_col(number_of_rows,rows_instruction)
+sum_col = make_sum_row_or_col(number_of_cols,cols_instruction)
 print(sum_row)
-print(sum_column)
+print(sum_col)
 print()
 
-matrix = [[row for row in range(number_of_rows)] for column in range(number_of_columns)]
-overlap(matrix, number_of_rows, rows_instruction, sum_row)
+matrix = [[row for row in range(number_of_rows)] for col in range(number_of_cols)]
+paint_overlap(matrix, number_of_cols, rows_instruction, sum_row, is_row = True)     # number_of_cols to iterate through item in 1 row
+is_finished(matrix, number_of_rows, rows_instruction, is_row = True)
 
-# check if something is finished, definitely unpainted items
+
+#paint_overlap(matrix, number_of_rows, cols_instruction, sum_col, is_row = False)
+
+
 
 
 

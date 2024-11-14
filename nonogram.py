@@ -1,7 +1,7 @@
 import re
-from typing import List     #for Function Annotations in python 3.8, not
+from typing import List     #for Function Annotations in python 3.8
 
-input_file = "instruction2.txt"
+input_file = "instruction.txt"
 
 def find_dimensions() -> List[int]:
     with open(input_file,"r") as file:
@@ -50,7 +50,6 @@ def find_raw_instruction_cols(l_number_of_cols: int) -> List[str]:
 def convert_raw_instruction_to_2d_array(l_raw_instruction: List[str]) -> List[List[int]]:     #from list of strings to list of arrays
     result = []
     for line in l_raw_instruction:
-        #print(type(line))
         result.append(re.findall(r'\d+', line))     #find numbers, but it is List[List[str]
     for i, row in enumerate(result):                       #convert them to int
         for j, item in enumerate(row):
@@ -95,11 +94,11 @@ def print_matrix(l_matrix):
 def paint_overlap_in_line(l_matrix_line: List[int], l_instruction_line: List[int]):
     offset = 0
     for item_in_instruction in l_instruction_line:
-        overlap = int(item_in_instruction) + sum(l_instruction_line) + len(l_instruction_line) - 1 - len(l_matrix_line)     #spaces = numbers in instruction(len()) -1
+        overlap = item_in_instruction + sum(l_instruction_line) + len(l_instruction_line) - 1 - len(l_matrix_line)     #spaces = numbers in instruction(len()) -1
         if overlap > 0:
-            for i in range(offset + int(item_in_instruction) - overlap, offset + int(item_in_instruction)):  # paint overlap in row
+            for i in range(offset + item_in_instruction - overlap, offset + item_in_instruction):  # paint overlap in row
                 l_matrix_line[i] = "#"
-        offset += int(item_in_instruction) + 1
+        offset += item_in_instruction + 1
 
 # number_of_cols for rows_instruction to iterate through items in 1 row
 def paint_overlap (l_matrix: List[List[int]], l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
@@ -107,15 +106,26 @@ def paint_overlap (l_matrix: List[List[int]], l_rows_or_cols_instruction: List[L
         l_matrix_line = get_row(l_matrix, row_or_col_index) if is_row else get_col(l_matrix, row_or_col_index)
         paint_overlap_in_line(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
 
-
-def count_packs_of_hashes_in_line(l_matrix_row_or_col: List[int]) -> int:
+def count_packs_of_hashes_in_line(l_matrix_line: List[int]) -> int:
     result = 0
     hash_counter = 0
-    for item in l_matrix_row_or_col:
+    for item in l_matrix_line:
         hash_counter = hash_counter + 1 if item == "#" else 0
         if hash_counter == 1:
             result += 1
     return result
+
+def is_line_finished(l_matrix_line: List[int], l_instruction_line: List[int]):
+    l_packs = count_packs_of_hashes_in_line(l_matrix_line)
+    if l_packs == len(l_instruction_line):
+        for instruction_line_item in l_instruction_line:
+            hash_counter = 0
+            for matrix_line_item in l_matrix_line:
+                hash_counter = hash_counter + 1 if matrix_line_item == "#" else 0
+                if hash_counter == instruction_line_item:
+                    pass
+
+
 
 #předělat, pokud pocet skupinek = počet čisel v zadani, můžu vyškrtávat
 def is_finished (l_matrix: List[List[int]], l_number_of_cols_or_rows: int, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
@@ -133,7 +143,7 @@ def is_finished (l_matrix: List[List[int]], l_number_of_cols_or_rows: int, l_row
                 for i in range(l_number_of_cols_or_rows):
                     if is_row:
                         hash_counter = hash_counter + 1 if l_matrix[row_or_col_index][i] == "#" else 0
-                        if hash_counter == int(item_in_instruction) and i+1 < l_number_of_cols_or_rows:
+                        if hash_counter == item_in_instruction and i+1 < l_number_of_cols_or_rows:
                             l_matrix[row_or_col_index][i+1] = "."
                             # print("x")
                 # else:
@@ -157,11 +167,8 @@ cols_instruction = find_col_instruction()
 
 matrix = [[col for col in range(number_of_cols)] for row in range(number_of_rows)]
 
-# paint_overlap_in_line(matrix[7], rows_instruction[7])
-# print(matrix[7])
-
-
 paint_overlap(matrix, rows_instruction, is_row = True)
+paint_overlap(matrix, cols_instruction, is_row = False)
 
 print()
 print(matrix[7])

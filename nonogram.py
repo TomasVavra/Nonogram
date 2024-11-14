@@ -1,20 +1,16 @@
 import re
 from typing import List     #for Function Annotations in python 3.8, not
 
-input_file = "instruction.txt"
+input_file = "instruction2.txt"
 
-def find_number_of_rows() -> int:
+def find_dimensions() -> List[int]:
     with open(input_file,"r") as file:
+        result = [0 for x in range(2)]
         for line in file:
             if "rows" in line:
-                result = int(re.search(r'\d+', line)[0])
-    return result
-
-def find_number_of_cols() -> int:
-    with open(input_file, "r") as file:
-        for line in file:
+                result [0] = int(re.search(r'\d+', line)[0])
             if "columns" in line:
-                result = int(re.search(r'\d+', line)[0])
+                result  [1]= int(re.search(r'\d+', line)[0])
     return result
 
 def find_raw_instruction_rows(l_number_of_rows: int):
@@ -52,15 +48,28 @@ def convert_raw_instruction_to_2d_array(l_raw_instruction: List[str]) -> List[Li
         result.append(re.findall(r'\d+', line))
     return result
 
+def find_row_instruction():
+    l_dimension = find_dimensions()
+    rows_raw_instruction = find_raw_instruction_rows(l_dimension[0])
+    result = convert_raw_instruction_to_2d_array(rows_raw_instruction)
+    return result
+
+def find_col_instruction():
+    l_dimension = find_dimensions()
+    cols_raw_instruction = find_raw_instruction_cols(l_dimension[1])
+    result = convert_raw_instruction_to_2d_array(cols_raw_instruction)
+    return result
+
+
 #sum of the numbers in each row or column + number of spaces
-def make_sum_row_or_col(l_number_of_rows_or_cols: int, l_rows_or_cols_instruction: List[List[int]]) -> List[int]:
-    result = [0 for row in range(l_number_of_rows_or_cols)]
-    for index, row in enumerate(l_rows_or_cols_instruction):
-        numbers = 0
-        for item in row:
-            result [index] += int(item)
-            numbers += 1                 #at least 1 space between ech numbers
-        result[index] += numbers - 1     #numbers -1 = spaces
+def make_sum_row_or_col(l_rows_or_cols_instruction: List[List[int]]) -> List[int]:
+    #result = [0 for row in range(l_number_of_rows_or_cols)]
+    result = []
+    for row_or_col in l_rows_or_cols_instruction:
+        sum = 0
+        for item in row_or_col:
+            sum += int(item) +1
+        result.append(sum-1)     #numbers -1 = spaces
     return result
 
 def print_matrix(l_matrix):     # in nice way with col and row indexes
@@ -110,7 +119,6 @@ def count_packs_of_hashes_in_line(l_matrix_row_or_col: List[int]) -> int:
             result += 1
     return result
 
-
 #předělat, pokud pocet skupinek = počet čisel v zadani, můžu vyškrtávat
 def is_finished (l_matrix: List[List[int]], l_number_of_cols_or_rows: int, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
@@ -136,15 +144,16 @@ def is_finished (l_matrix: List[List[int]], l_number_of_cols_or_rows: int, l_row
                 #     #     l_matrix[i+1][row_or_col_index] = "."
 
 
+dimension = find_dimensions()
+number_of_rows = dimension[0]
+number_of_cols = dimension[1]
+print(number_of_rows,number_of_cols)
 
-number_of_rows = find_number_of_rows()
-number_of_cols = find_number_of_cols()
-rows_raw_instruction = find_raw_instruction_rows(number_of_rows)
-cols_raw_instruction = find_raw_instruction_cols(number_of_rows)
-rows_instruction = convert_raw_instruction_to_2d_array(rows_raw_instruction)
-cols_instruction = convert_raw_instruction_to_2d_array(cols_raw_instruction)
-sum_row = make_sum_row_or_col(number_of_rows, rows_instruction)
-sum_col = make_sum_row_or_col(number_of_cols, cols_instruction)
+rows_instruction = find_row_instruction()
+cols_instruction = find_col_instruction()
+
+sum_row = make_sum_row_or_col(rows_instruction)
+sum_col = make_sum_row_or_col(cols_instruction)
 print(sum_row)
 print(sum_col)
 print()

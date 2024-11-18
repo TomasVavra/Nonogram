@@ -87,7 +87,7 @@ def print_matrix(l_matrix) -> None:
 
 # line can be row or column
 # not working for columns
-def paint_overlap_in_line(l_matrix_line: List[int], l_instruction_line: List[int]) -> None:
+def paint_overlap_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> None:
     offset = 0
     for instruction_line_item in l_instruction_line:
         overlap = instruction_line_item + sum(l_instruction_line) + len(l_instruction_line) - 1 - len(l_matrix_line)     #spaces = numbers in instruction(len()) -1
@@ -95,15 +95,15 @@ def paint_overlap_in_line(l_matrix_line: List[int], l_instruction_line: List[int
             for i in range(offset + instruction_line_item - overlap, offset + instruction_line_item):  # paint overlap in row
                 l_matrix_line[i] = "#"
         offset += instruction_line_item + 1
-
+#ndarray[Any,dtype]
 # number_of_cols for rows_instruction to iterate through items in 1 row
-def paint_overlap (l_matrix: List[List[int]], l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
+def paint_overlap (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
         #l_matrix_line = get_row(l_matrix, row_or_col_index) if is_row else get_col(l_matrix, row_or_col_index)
         l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
         paint_overlap_in_line(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
 
-def count_packs_of_hashes_in_line(l_matrix_line: List[int]) -> int:
+def count_packs_of_hashes_in_line(l_matrix_line: np.ndarray) -> int:
     result = 0
     hash_counter = 0
     for item in l_matrix_line:
@@ -113,7 +113,7 @@ def count_packs_of_hashes_in_line(l_matrix_line: List[int]) -> int:
     return result
 
 # test line fails, for completely solved line works well
-def is_line_finished(l_matrix_line: List[int], l_instruction_line: List[int]) -> None:
+def is_line_finished(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> None:
     l_packs = count_packs_of_hashes_in_line(l_matrix_line)
     if l_packs == len(l_instruction_line):
         offset = 0
@@ -129,7 +129,7 @@ def is_line_finished(l_matrix_line: List[int], l_instruction_line: List[int]) ->
 
 
 #předělat, pokud pocet skupinek = počet čisel v zadani, můžu vyškrtávat
-def is_finished (l_matrix: List[List[int]], l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
+def is_finished (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
         l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
         is_line_finished(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])

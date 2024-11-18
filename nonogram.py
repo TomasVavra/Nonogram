@@ -1,4 +1,5 @@
 import re
+import numpy as np
 from typing import List     #for Function Annotations in python 3.8
 
 input_file = "instruction.txt"
@@ -6,18 +7,12 @@ input_file = "instruction.txt"
 def find_dimensions() -> List[int]:
     with open(input_file,"r") as file:
         result = [0 for x in range(2)]
-        for line in file:
-            if "rows" in line:
-                result [0] = int(re.search(r'\d+', line)[0])
-            if "columns" in line:
-                result  [1]= int(re.search(r'\d+', line)[0])
+        for l_line in file:
+            if "rows" in l_line:
+                result [0] = int(re.search(r'\d+', l_line)[0])
+            if "columns" in l_line:
+                result  [1]= int(re.search(r'\d+', l_line)[0])
     return result
-
-def get_row(l_matrix: List[List[int]], row_index: int) -> List[int]:
-    return l_matrix[row_index]
-
-def get_col(l_matrix: List[List[int]], col_index: int) -> List[int]:
-    return [row[col_index] for row in l_matrix]
 
 def find_raw_instruction_rows(l_number_of_rows: int) -> List[str]:
     with open(input_file, "r") as file:
@@ -104,7 +99,8 @@ def paint_overlap_in_line(l_matrix_line: List[int], l_instruction_line: List[int
 # number_of_cols for rows_instruction to iterate through items in 1 row
 def paint_overlap (l_matrix: List[List[int]], l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
-        l_matrix_line = get_row(l_matrix, row_or_col_index) if is_row else get_col(l_matrix, row_or_col_index)
+        #l_matrix_line = get_row(l_matrix, row_or_col_index) if is_row else get_col(l_matrix, row_or_col_index)
+        l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
         paint_overlap_in_line(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
 
 def count_packs_of_hashes_in_line(l_matrix_line: List[int]) -> int:
@@ -135,7 +131,7 @@ def is_line_finished(l_matrix_line: List[int], l_instruction_line: List[int]) ->
 #předělat, pokud pocet skupinek = počet čisel v zadani, můžu vyškrtávat
 def is_finished (l_matrix: List[List[int]], l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
-        l_matrix_line = get_row(l_matrix, row_or_col_index) if is_row else get_col(l_matrix, row_or_col_index)
+        l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
         is_line_finished(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
 
 
@@ -146,23 +142,22 @@ print(number_of_rows,number_of_cols)
 print()
 rows_instruction = find_row_instruction()
 cols_instruction = find_col_instruction()
-
-matrix = [[col for col in range(number_of_cols)] for row in range(number_of_rows)]
+print(cols_instruction)
+matrix = np.array([[col for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)
 
 paint_overlap(matrix, rows_instruction, is_row = True)
 paint_overlap(matrix, cols_instruction, is_row = False)
-# is_finished(matrix, rows_instruction, is_row = True)
-# is_finished(matrix, cols_instruction, is_row = False)
-# print_matrix(matrix)
 
-print()
+
 print_matrix(matrix)
-test_row = ['#', '0', '#', '#', '0', '#', '0', 0, '#', '#', '0', '#', '#', 0, '#']
-test_row_instruction = [1,2,1,3,2,1]
-is_line_finished(test_row, test_row_instruction)
-print(test_row)
-# is_line_finished(get_row(matrix,11), rows_instruction[11])
-#print(get_row(matrix,11))
+print()
+
+
+# test_row = ['#', '0', '#', '#', '0', '#', '0', 0, '#', '#', '0', '#', '#', 0, '#']
+# test_row_instruction = [1,2,1,3,2,1]
+# is_line_finished(test_row, test_row_instruction)
+# print(test_row)
+
 
 
 

@@ -99,9 +99,32 @@ def paint_overlap_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[in
 # number_of_cols for rows_instruction to iterate through items in 1 row
 def paint_overlap (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
-        #l_matrix_line = get_row(l_matrix, row_or_col_index) if is_row else get_col(l_matrix, row_or_col_index)
         l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
         paint_overlap_in_line(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
+
+def check_solution_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> bool:
+    groups = []
+    counter = 0
+    for item in l_matrix_line:
+        if item == "#":
+            counter += 1
+        elif item == ".":
+            groups.append(counter)
+            counter = 0
+    if counter > 0:
+        groups.append(counter)
+    return groups == l_instruction_line
+
+def check_solution(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_cols_instruction: List[List[int]]) -> bool:
+    for row_index, row in enumerate(l_rows_instruction):
+        l_matrix_line = l_matrix[row_index,:]
+        if not check_solution_in_line(l_matrix_line, l_rows_instruction[row_index]):
+            return False
+    for col_index, row in enumerate(l_cols_instruction):
+        l_matrix_line = l_matrix[:,col_index]
+        if not check_solution_in_line(l_matrix_line, l_cols_instruction[col_index]):
+            return False
+    return True
 
 def count_packs_of_hashes_in_line(l_matrix_line: np.ndarray) -> int:
     result = 0
@@ -152,6 +175,9 @@ paint_overlap(matrix, cols_instruction, is_row = False)
 print_matrix(matrix)
 print()
 
+test_row = ['#', '.', '#', '#', '.', '#', '.', "#", '#', '#', '.', '#', '#', ".", '#']
+test_row_instruction = [1,2,1,3,2,1]
+print(check_solution_in_line(test_row,test_row_instruction))
 
 # test_row = ['#', '0', '#', '#', '0', '#', '0', 0, '#', '#', '0', '#', '#', 0, '#']
 # test_row_instruction = [1,2,1,3,2,1]

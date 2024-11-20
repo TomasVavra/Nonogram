@@ -129,6 +129,24 @@ def check_solution(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_
     return True
 
 def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
+    result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
+    extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
+
+    print(extra_spaces)
+    print()
+    for k in range(extra_spaces):
+        offset = 0
+        for j, instruction_line_item in enumerate(l_instruction_line):
+            for i in range(instruction_line_item):
+                result[k+i+offset] = "#"
+            if j < len(l_instruction_line)-1:   # no "." after last instruction
+                result[k+offset+instruction_line_item] = "."
+            # result[k-1] = "."
+            offset += instruction_line_item+1
+
+        print(instruction_line_item)
+        print(result)
+            #result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
 
 
 # def count_packs_of_hashes_in_line(l_matrix_line: np.ndarray) -> int:
@@ -154,23 +172,19 @@ def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[i
 #                     print("xxxxxx")
 #                     break  # exit the loop once the dot is placed
 #             offset += instruction_line_item + 1
-
-
-#předělat, pokud pocet skupinek = počet čisel v zadani, můžu vyškrtávat
-def is_finished (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
-    for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
-        l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
-        is_line_finished(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
-
+#
+# #předělat, pokud pocet skupinek = počet čisel v zadani, můžu vyškrtávat
+# def is_finished (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
+#     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
+#         l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
+#         is_line_finished(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
 
 dimension = find_dimensions()
 number_of_rows = dimension[0]
 number_of_cols = dimension[1]
-print(number_of_rows,number_of_cols)
-print()
 rows_instruction = find_row_instruction()
 cols_instruction = find_col_instruction()
-print(cols_instruction)
+
 matrix = np.array([[col for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)
 
 paint_overlap(matrix, rows_instruction, is_row = True)
@@ -180,9 +194,17 @@ print()
 print_matrix(matrix)
 print()
 
-test_row = ['#', '.', '#', '#', '.', '#', '.', "#", '#', '#', '.', '#', '#', ".", '#']
+test_row = np.array(['#', '.', '#', '#', '.', '#', '.', "#", '#', '#', '.', '#', '#', ".", '#'])
 test_row_instruction = [1,2,1,3,2,1]
 print(check_solution_in_line(test_row,test_row_instruction))
+print()
+
+print(matrix[13,:])
+print(rows_instruction[13])
+all_solutions_for_line(matrix[13,:],rows_instruction[13])
+
+print()
+print
 
 # test_row = ['#', '0', '#', '#', '0', '#', '0', 0, '#', '#', '0', '#', '#', 0, '#']
 # test_row_instruction = [1,2,1,3,2,1]

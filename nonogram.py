@@ -2,7 +2,7 @@ import re
 import numpy as np
 from typing import List     #for Function Annotations in python 3.8
 
-input_file = "instruction.txt"
+input_file = "instruction3.txt"
 
 def find_dimensions() -> List[int]:
     with open(input_file,"r") as file:
@@ -65,28 +65,31 @@ def find_col_instruction() -> List[List[int]]:
 
 # in nice way with col and row indexes
 def print_matrix(l_matrix) -> None:
-    print("      ", end="")
-    for idx, item in enumerate(l_matrix[0]):
+    print("    ", end="")
+    for idx, item in enumerate(l_matrix[0]):    #print col indexes
+        if idx % 5 == 0:
+            print("|  ", end="")
         print(idx, " ", end="")
         if idx < 10:
             print(" ", end="")
     print()
-    print("      ", end="")
-    [print("----", end="") for item in l_matrix[0]]
-    print()
     for idx, row in enumerate(l_matrix):
+        if idx%5 == 0:
+            print("      ", end="")
+            [print("----", end="") for item in l_matrix[0]]
+            print()
         print(idx, " ",end="")
         if idx < 10:
             print(" ",end="")
-        print("| ",end="")
-        for item in row:
+        for idy, item in enumerate(row):
+            if idy % 5 == 0:
+                print("|  ", end="")
             print(item," ",end="")
             if type(item) != int or item < 10:
                 print(" ",end="")
         print("|")
 
 # line can be row or column
-# not working for columns
 def paint_overlap_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> None:
     offset = 0
     for instruction_line_item in l_instruction_line:
@@ -95,8 +98,7 @@ def paint_overlap_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[in
             for i in range(offset + instruction_line_item - overlap, offset + instruction_line_item):  # paint overlap in row
                 l_matrix_line[i] = "#"
         offset += instruction_line_item + 1
-#ndarray[Any,dtype]
-# number_of_cols for rows_instruction to iterate through items in 1 row
+
 def paint_overlap (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
         l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
@@ -126,29 +128,32 @@ def check_solution(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_
             return False
     return True
 
-def count_packs_of_hashes_in_line(l_matrix_line: np.ndarray) -> int:
-    result = 0
-    hash_counter = 0
-    for item in l_matrix_line:
-        hash_counter = hash_counter + 1 if item == "#" else 0
-        if hash_counter == 1:
-            result += 1
-    return result
+def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
 
-# test line fails, for completely solved line works well
-def is_line_finished(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> None:
-    l_packs = count_packs_of_hashes_in_line(l_matrix_line)
-    if l_packs == len(l_instruction_line):
-        offset = 0
-        for instruction_line_item in l_instruction_line:
-            hash_counter = 0
-            for i in range(offset, len(l_matrix_line)):
-                hash_counter = hash_counter + 1 if l_matrix_line[i] == "#" else 0
-                if hash_counter == instruction_line_item and i+1 < len(l_matrix_line):
-                    l_matrix_line[i+1] = "."
-                    print("xxxxxx")
-                    break  # exit the loop once the dot is placed
-            offset += instruction_line_item + 1
+
+# def count_packs_of_hashes_in_line(l_matrix_line: np.ndarray) -> int:
+#     result = 0
+#     hash_counter = 0
+#     for item in l_matrix_line:
+#         hash_counter = hash_counter + 1 if item == "#" else 0
+#         if hash_counter == 1:
+#             result += 1
+#     return result
+#
+# # test line fails, for completely solved line works well
+# def is_line_finished(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> None:
+#     l_packs = count_packs_of_hashes_in_line(l_matrix_line)
+#     if l_packs == len(l_instruction_line):
+#         offset = 0
+#         for instruction_line_item in l_instruction_line:
+#             hash_counter = 0
+#             for i in range(offset, len(l_matrix_line)):
+#                 hash_counter = hash_counter + 1 if l_matrix_line[i] == "#" else 0
+#                 if hash_counter == instruction_line_item and i+1 < len(l_matrix_line):
+#                     l_matrix_line[i+1] = "."
+#                     print("xxxxxx")
+#                     break  # exit the loop once the dot is placed
+#             offset += instruction_line_item + 1
 
 
 #předělat, pokud pocet skupinek = počet čisel v zadani, můžu vyškrtávat
@@ -171,7 +176,7 @@ matrix = np.array([[col for col in range(number_of_cols)] for row in range(numbe
 paint_overlap(matrix, rows_instruction, is_row = True)
 paint_overlap(matrix, cols_instruction, is_row = False)
 
-
+print()
 print_matrix(matrix)
 print()
 

@@ -27,7 +27,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Python.nonogram.executor": "Debug",
+    "Python.nonogram.executor": "Run",
     "Python.test.executor": "Run",
     "Python.tutor2.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -115,16 +115,5 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nonogram.py</url>
-          <line>154</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

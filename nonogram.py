@@ -128,33 +128,24 @@ def check_solution(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_
             return False
     return True
 
-def n_spaces_to_m_position(l_matrix_line: np.ndarray, l_instruction_line: List[int], extra_spaces: int, position: int) -> np.ndarray:
+def extra_spaces_to_position_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int], extra_spaces: int, position: int) -> np.ndarray:
     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
-    offset = 0
-    instruction_offset = 0
-    # for position_index in range(position):
-    #     offset += l_instruction_line[position_index] + 1    #space behind every instruction
-    #     if position_index == len(l_instruction_line)-1:     #no space behind last instruction
-    #         offset -=1
-    # for i in range(offset, offset + extra_spaces):
-    #     result[i] = "."
-
     matrix_line_index = 0
     for instruction_line_index, instruction_line_item in enumerate(l_instruction_line):
-        if instruction_line_index == position:
+        if instruction_line_index == position:      # extra spaces in front of instruction
             for i in range(matrix_line_index, matrix_line_index + extra_spaces):
                 result[i] = "."
-            matrix_line_index += extra_spaces
-        for i in range(matrix_line_index, matrix_line_index + instruction_line_item):
+                matrix_line_index += 1
+        for i in range(matrix_line_index, matrix_line_index + instruction_line_item):   #fill instruction
             result[i] = "#"
-        matrix_line_index += instruction_line_item                  #space behind every instruction
+            matrix_line_index += 1
         if instruction_line_index < len(l_instruction_line) - 1:    #no space behind last instruction
-            result[matrix_line_index] = "."
-            matrix_line_index += 1                                  #space behind every instruction
-        if position == len(l_instruction_line) and instruction_line_index +1 == len(l_instruction_line):    #free spaces behind last instruction
+            result[matrix_line_index] = "."                         #space behind every instruction
+            matrix_line_index += 1
+        if position == len(l_instruction_line) and instruction_line_index +1 == len(l_instruction_line):    #extra spaces behind last instruction if last position
             for i in range(matrix_line_index, matrix_line_index + extra_spaces):
                 result[i] = "."
-    print(result)
+    return result
 
 
 
@@ -235,7 +226,7 @@ print()
 
 print(matrix[13,:])
 print(rows_instruction[13])
-n_spaces_to_m_position(matrix[13,:],rows_instruction[13],4,5)
+print(extra_spaces_to_position_in_line(matrix[13,:],rows_instruction[13],4,4))
 
 print()
 

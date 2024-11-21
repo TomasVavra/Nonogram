@@ -128,55 +128,79 @@ def check_solution(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_
             return False
     return True
 
-def extra_spaces_to_position_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int], extra_spaces: int, position: int) -> np.ndarray:
+# def extra_spaces_to_position_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int], extra_spaces: int, position: int) -> np.ndarray:
+#     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
+#     matrix_line_index = 0
+#     for instruction_line_index, instruction_line_item in enumerate(l_instruction_line):
+#         if instruction_line_index == position:      # extra spaces in front of instruction
+#             for i in range(matrix_line_index, matrix_line_index + extra_spaces):
+#                 result[i] = "."
+#                 matrix_line_index += 1
+#         for i in range(matrix_line_index, matrix_line_index + instruction_line_item):   #fill instruction
+#             result[i] = "#"
+#             matrix_line_index += 1
+#         if instruction_line_index < len(l_instruction_line) - 1:    #no space behind last instruction
+#             result[matrix_line_index] = "."                         #space behind every instruction
+#             matrix_line_index += 1
+#         if position == len(l_instruction_line) and instruction_line_index +1 == len(l_instruction_line):    #extra spaces behind last instruction if last position
+#             for i in range(matrix_line_index, matrix_line_index + extra_spaces):
+#                 result[i] = "."
+#     return result
+
+def first_solution_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
     matrix_line_index = 0
     for instruction_line_index, instruction_line_item in enumerate(l_instruction_line):
-        if instruction_line_index == position:      # extra spaces in front of instruction
-            for i in range(matrix_line_index, matrix_line_index + extra_spaces):
-                result[i] = "."
-                matrix_line_index += 1
         for i in range(matrix_line_index, matrix_line_index + instruction_line_item):   #fill instruction
             result[i] = "#"
             matrix_line_index += 1
         if instruction_line_index < len(l_instruction_line) - 1:    #no space behind last instruction
             result[matrix_line_index] = "."                         #space behind every instruction
             matrix_line_index += 1
-        if position == len(l_instruction_line) and instruction_line_index +1 == len(l_instruction_line):    #extra spaces behind last instruction if last position
-            for i in range(matrix_line_index, matrix_line_index + extra_spaces):
-                result[i] = "."
     return result
 
-def add_space(l_matrix_line: np.ndarray, position: int):
+def add_spaces(l_matrix_line: np.ndarray, spaces: int, position: int):
     result = np.copy(l_matrix_line)
     number_of_first_dots = 0
     first_dot = True    #is it first dot after #?
     for index, item in enumerate(l_matrix_line):
-        if position == number_of_first_dots or type(item) == int:
-            result = np.insert(l_matrix_line,index,".")
-            break  # extra space is placed, I don't want second one
+        if position == number_of_first_dots or (item != "#" and item != "."):   #extra space to the end
+            for space in range(spaces):
+                result = np.insert(result,index,".")
+                print(space)
+            break  # extra spaces are placed, I don't want second one
         if item == "#":
             first_dot = True
         if item == "." and first_dot:
             number_of_first_dots += 1
             first_dot = False
-    # error handling
-    if result[-1] == "#" or result[-1] == ".":
+    # error handling, too much spaces is inserted
+    if spaces > 0 and (result[-spaces] == "#" or result[-spaces] == "."):
         raise ValueError("The extra element is . or # ")
     # copy result to original line
     for index, item in enumerate(l_matrix_line):    #excess elements are not copied
         l_matrix_line[index] = result[index]
 
-
-
 def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
-    result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
+    possible_line = first_solution_for_line(l_matrix_line, l_instruction_line)
+    result = possible_line
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
 
     for position in range(len(l_instruction_line)+1):
+        inserted_spaces = 0
+        result = first_solution_for_line(l_matrix_line, l_instruction_line)
         for spaces in range(extra_spaces+1):
-            result = extra_spaces_to_position_in_line(l_matrix_line, l_instruction_line, spaces, position)
-        print(result)
+            if inserted_spaces < extra_spaces:
+                add_spaces(result, 1, position)
+                inserted_spaces += 1
+                print(result)
+
+    # print(result)
+    # add_spaces(result, 0, 0)
+    # print(result)
+
+    #return result
+
 
 
 # def count_packs_of_hashes_in_line(l_matrix_line: np.ndarray) -> int:
@@ -224,30 +248,27 @@ print()
 print_matrix(matrix)
 print()
 
-test_row = np.array(['#', '.', '#', '#', '.', '#', '.', "#", '#', '#', '.', '#', '#', ".", '#'])
-test_row_instruction = [1,2,1,3,2,1]
-print(check_solution_in_line(test_row,test_row_instruction))
-print()
+# test_row = np.array(['#', '.', '#', '#', '.', '#', '.', "#", '#', '#', '.', '#', '#', ".", '#'])
+# test_row_instruction = [1,2,1,3,2,1]
+# print(check_solution_in_line(test_row,test_row_instruction))
+# print()
 
 print(matrix[13,:])
 print(rows_instruction[13])
-line = extra_spaces_to_position_in_line(matrix[13,:],rows_instruction[13],2,2)
-print(line)
-add_space(line,5)
-print(line)
-add_space(line,0)
+print()
+# print(first_solution_for_line(matrix[13,:],rows_instruction[13]))
+# line = first_solution_for_line(matrix[13,:],rows_instruction[13])
+# print(line)
+# add_spaces(line,2,5)
+# print(line)
 
-print(line)
+#print(first_solution_for_line(matrix[13,:],rows_instruction[13]))
 
-#all_solutions_for_line(matrix[13,:],rows_instruction[13])
+print(all_solutions_for_line(matrix[13,:],rows_instruction[13]))
 
 print()
 
 
-# test_row = ['#', '0', '#', '#', '0', '#', '0', 0, '#', '#', '0', '#', '#', 0, '#']
-# test_row_instruction = [1,2,1,3,2,1]
-# is_line_finished(test_row, test_row_instruction)
-# print(test_row)
 
 
 

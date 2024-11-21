@@ -1,32 +1,21 @@
 import numpy as np
 
-def print_matrix(l_matrix) -> None:
-    print("    ", end="")
-    for idx, item in enumerate(l_matrix[0]):    #print col indexes
-        if idx % 5 == 0:
-            print("|  ", end="")
-        print(idx, " ", end="")
-        if idx < 10:
-            print(" ", end="")
-    print()
-    for idx, row in enumerate(l_matrix):
-        if idx%5 == 0:
-            print("      ", end="")
-            [print("----", end="") for item in l_matrix[0]]
-            print()
-        print(idx, " ",end="")
-        if idx < 10:
-            print(" ",end="")
-        for idy, item in enumerate(row):
-            if idy % 5 == 0:
-                print("|  ", end="")
-            print(item," ",end="")
-            if type(item) != int or item < 10:
-                print(" ",end="")
-        print("|")
+original_array = np.array([10, 20, 30, 40, 50])
+print(original_array)
+copied_array = np.copy(original_array)
+new_arr = np.insert(copied_array, 2, 25)
+print(original_array)
+print(copied_array)
+print(new_arr)
 
-
-matrix = [[col for col in range(10)] for row in range(15)]
-print(matrix[:][0])
-
-print_matrix(matrix)
+# def fce(number):
+#     number = 5
+# def gce(ar):
+#     ar[0] = 9
+# x= 7
+# fce(x)
+# print(x)
+#
+# arr = [0,0]
+# gce(arr)
+# print(arr)

@@ -147,31 +147,36 @@ def extra_spaces_to_position_in_line(l_matrix_line: np.ndarray, l_instruction_li
                 result[i] = "."
     return result
 
+def add_space(l_matrix_line: np.ndarray, position: int):
+    result = np.copy(l_matrix_line)
+    number_of_first_dots = 0
+    first_dot = True    #is it first dot after #?
+    for index, item in enumerate(l_matrix_line):
+        if position == number_of_first_dots or type(item) == int:
+            result = np.insert(l_matrix_line,index,".")
+            break  # extra space is placed, I don't want second one
+        if item == "#":
+            first_dot = True
+        if item == "." and first_dot:
+            number_of_first_dots += 1
+            first_dot = False
+    # error handling
+    if result[-1] == "#" or result[-1] == ".":
+        raise ValueError("The extra element is . or # ")
+    # copy result to original line
+    for index, item in enumerate(l_matrix_line):    #excess elements are not copied
+        l_matrix_line[index] = result[index]
 
 
-# def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
-#     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
-#     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
-#
-#     print(extra_spaces)
-#     print()
-#     for l in range(len(l_instruction_line)+1):        #where wil I fit extra spaces
-#         offset2 = 0
-#         for k in range(extra_spaces+1):             #how many extra spaces
-#             offset = 0
-#             for j, instruction_line_item in enumerate(l_instruction_line):
-#                 # for i in range(instruction_line_item):
-#                 #     result[k+i+offset] = "#"
-#                 if j < len(l_instruction_line)-1:   # no "." after last instruction
-#                     result[k+offset+instruction_line_item] = "."
-#                 if k >= 0:
-#                     result[k-1] = "."
-#                 offset += instruction_line_item+1
-#             print(result)
-#         offset2 += instruction_line_item+1
 
+def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
+    result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
+    extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
 
-            #result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
+    for position in range(len(l_instruction_line)+1):
+        for spaces in range(extra_spaces+1):
+            result = extra_spaces_to_position_in_line(l_matrix_line, l_instruction_line, spaces, position)
+        print(result)
 
 
 # def count_packs_of_hashes_in_line(l_matrix_line: np.ndarray) -> int:
@@ -226,7 +231,15 @@ print()
 
 print(matrix[13,:])
 print(rows_instruction[13])
-print(extra_spaces_to_position_in_line(matrix[13,:],rows_instruction[13],4,4))
+line = extra_spaces_to_position_in_line(matrix[13,:],rows_instruction[13],2,2)
+print(line)
+add_space(line,5)
+print(line)
+add_space(line,0)
+
+print(line)
+
+#all_solutions_for_line(matrix[13,:],rows_instruction[13])
 
 print()
 

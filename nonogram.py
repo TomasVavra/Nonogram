@@ -128,25 +128,6 @@ def check_solution(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_
             return False
     return True
 
-# def extra_spaces_to_position_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int], extra_spaces: int, position: int) -> np.ndarray:
-#     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
-#     matrix_line_index = 0
-#     for instruction_line_index, instruction_line_item in enumerate(l_instruction_line):
-#         if instruction_line_index == position:      # extra spaces in front of instruction
-#             for i in range(matrix_line_index, matrix_line_index + extra_spaces):
-#                 result[i] = "."
-#                 matrix_line_index += 1
-#         for i in range(matrix_line_index, matrix_line_index + instruction_line_item):   #fill instruction
-#             result[i] = "#"
-#             matrix_line_index += 1
-#         if instruction_line_index < len(l_instruction_line) - 1:    #no space behind last instruction
-#             result[matrix_line_index] = "."                         #space behind every instruction
-#             matrix_line_index += 1
-#         if position == len(l_instruction_line) and instruction_line_index +1 == len(l_instruction_line):    #extra spaces behind last instruction if last position
-#             for i in range(matrix_line_index, matrix_line_index + extra_spaces):
-#                 result[i] = "."
-#     return result
-
 def first_solution_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
     matrix_line_index = 0
@@ -201,37 +182,6 @@ def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[i
 
     #return result
 
-
-
-# def count_packs_of_hashes_in_line(l_matrix_line: np.ndarray) -> int:
-#     result = 0
-#     hash_counter = 0
-#     for item in l_matrix_line:
-#         hash_counter = hash_counter + 1 if item == "#" else 0
-#         if hash_counter == 1:
-#             result += 1
-#     return result
-#
-# # test line fails, for completely solved line works well
-# def is_line_finished(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> None:
-#     l_packs = count_packs_of_hashes_in_line(l_matrix_line)
-#     if l_packs == len(l_instruction_line):
-#         offset = 0
-#         for instruction_line_item in l_instruction_line:
-#             hash_counter = 0
-#             for i in range(offset, len(l_matrix_line)):
-#                 hash_counter = hash_counter + 1 if l_matrix_line[i] == "#" else 0
-#                 if hash_counter == instruction_line_item and i+1 < len(l_matrix_line):
-#                     l_matrix_line[i+1] = "."
-#                     print("xxxxxx")
-#                     break  # exit the loop once the dot is placed
-#             offset += instruction_line_item + 1
-#
-# #předělat, pokud pocet skupinek = počet čisel v zadani, můžu vyškrtávat
-# def is_finished (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
-#     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
-#         l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
-#         is_line_finished(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
 
 dimension = find_dimensions()
 number_of_rows = dimension[0]

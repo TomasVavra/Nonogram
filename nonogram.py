@@ -148,7 +148,6 @@ def add_spaces(l_matrix_line: np.ndarray, spaces: int, position: int):
         if position == number_of_first_dots or (item != "#" and item != "."):   #extra space to the end
             for space in range(spaces):
                 result = np.insert(result,index,".")
-                print(space)
             break  # extra spaces are placed, I don't want second one
         if item == "#":
             first_dot = True
@@ -166,15 +165,18 @@ def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[i
     possible_line = first_solution_for_line(l_matrix_line, l_instruction_line)
     result = possible_line
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
+    positions = len(l_instruction_line)+1
 
-    for position in range(len(l_instruction_line)+1):
+
+    for spaces in range(extra_spaces + 1):
         inserted_spaces = 0
-        result = first_solution_for_line(l_matrix_line, l_instruction_line)
-        for spaces in range(extra_spaces+1):
-            if inserted_spaces < extra_spaces:
-                add_spaces(result, 1, position)
-                inserted_spaces += 1
-                print(result)
+        result = possible_line
+        for position in range(positions):
+            add_spaces(result, spaces, position)
+            inserted_spaces += spaces
+            if inserted_spaces == extra_spaces:
+                break
+        print(result)
 
     # print(result)
     # add_spaces(result, 0, 0)

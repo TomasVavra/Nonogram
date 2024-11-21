@@ -128,24 +128,58 @@ def check_solution(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_
             return False
     return True
 
-def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
+def n_spaces_to_m_position(l_matrix_line: np.ndarray, l_instruction_line: List[int], extra_spaces: int, position: int) -> np.ndarray:
     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
-    extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
+    offset = 0
+    instruction_offset = 0
+    # for position_index in range(position):
+    #     offset += l_instruction_line[position_index] + 1    #space behind every instruction
+    #     if position_index == len(l_instruction_line)-1:     #no space behind last instruction
+    #         offset -=1
+    # for i in range(offset, offset + extra_spaces):
+    #     result[i] = "."
 
-    print(extra_spaces)
-    print()
-    for k in range(extra_spaces):
-        offset = 0
-        for j, instruction_line_item in enumerate(l_instruction_line):
-            for i in range(instruction_line_item):
-                result[k+i+offset] = "#"
-            if j < len(l_instruction_line)-1:   # no "." after last instruction
-                result[k+offset+instruction_line_item] = "."
-            # result[k-1] = "."
-            offset += instruction_line_item+1
+    matrix_line_index = 0
+    for instruction_line_index, instruction_line_item in enumerate(l_instruction_line):
+        if instruction_line_index == position:
+            for i in range(matrix_line_index, matrix_line_index + extra_spaces):
+                result[i] = "."
+            matrix_line_index += extra_spaces
+        for i in range(matrix_line_index, matrix_line_index + instruction_line_item):
+            result[i] = "#"
+        matrix_line_index += instruction_line_item                  #space behind every instruction
+        if instruction_line_index < len(l_instruction_line) - 1:    #no space behind last instruction
+            result[matrix_line_index] = "."
+            matrix_line_index += 1                                  #space behind every instruction
+        if position == len(l_instruction_line) and instruction_line_index +1 == len(l_instruction_line):    #free spaces behind last instruction
+            for i in range(matrix_line_index, matrix_line_index + extra_spaces):
+                result[i] = "."
+    print(result)
 
-        print(instruction_line_item)
-        print(result)
+
+
+# def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
+#     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
+#     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
+#
+#     print(extra_spaces)
+#     print()
+#     for l in range(len(l_instruction_line)+1):        #where wil I fit extra spaces
+#         offset2 = 0
+#         for k in range(extra_spaces+1):             #how many extra spaces
+#             offset = 0
+#             for j, instruction_line_item in enumerate(l_instruction_line):
+#                 # for i in range(instruction_line_item):
+#                 #     result[k+i+offset] = "#"
+#                 if j < len(l_instruction_line)-1:   # no "." after last instruction
+#                     result[k+offset+instruction_line_item] = "."
+#                 if k >= 0:
+#                     result[k-1] = "."
+#                 offset += instruction_line_item+1
+#             print(result)
+#         offset2 += instruction_line_item+1
+
+
             #result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
 
 
@@ -201,10 +235,10 @@ print()
 
 print(matrix[13,:])
 print(rows_instruction[13])
-all_solutions_for_line(matrix[13,:],rows_instruction[13])
+n_spaces_to_m_position(matrix[13,:],rows_instruction[13],4,5)
 
 print()
-print
+
 
 # test_row = ['#', '0', '#', '#', '0', '#', '0', 0, '#', '#', '0', '#', '#', 0, '#']
 # test_row_instruction = [1,2,1,3,2,1]

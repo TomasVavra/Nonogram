@@ -1,21 +1,29 @@
-import numpy as np
+import itertools
 
-original_array = np.array([10, 20, 30, 40, 50])
-print(original_array)
-copied_array = np.copy(original_array)
-new_arr = np.insert(copied_array, 2, 25)
-print(original_array)
-print(copied_array)
-print(new_arr)
 
-# def fce(number):
-#     number = 5
-# def gce(ar):
-#     ar[0] = 9
-# x= 7
-# fce(x)
-# print(x)
-#
-# arr = [0,0]
-# gce(arr)
-# print(arr)
+def generate_dot_distributions(dots, positions):
+    # Generate all combinations with repetition
+    combinations = list(itertools.combinations_with_replacement(range(positions), dots))
+
+    # Filter out valid distributions where sum of positions equals number of dots
+    valid_combinations = []
+    for combo in combinations:
+        # Count the number of dots in each position
+        position_count = [0] * positions
+        for pos in combo:
+            position_count[pos] += 1
+        if sum(position_count) == dots:
+            valid_combinations.append(position_count)
+
+    return valid_combinations
+
+
+# Example usage
+dots = 4
+positions = 6
+combinations = generate_dot_distributions(dots, positions)
+
+# Print all valid combinations
+for combo in combinations:
+    print(combo)
+

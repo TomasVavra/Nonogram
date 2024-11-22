@@ -167,16 +167,23 @@ def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[i
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
     positions = len(l_instruction_line)+1
 
+    def helper(result: np.ndarray, spaces_left: int, current_position: int) -> None:
+        if spaces_left == 0:
+            print(result)
+            return
+        if current_position >= positions:
+            return
 
-    for spaces in range(extra_spaces + 1):
-        inserted_spaces = 0
-        result = possible_line
-        for position in range(positions):
-            add_spaces(result, spaces, position)
-            inserted_spaces += spaces
-            if inserted_spaces == extra_spaces:
-                break
-        print(result)
+        for i in range(spaces_left + 1):
+            # result[current_position] = i
+            add_spaces(result, i, current_position)
+            helper(result, spaces_left - i, current_position + 1)
+            result = possible_line
+            # result[current_position] = 0  # Reset for the next iteration
+
+    helper(result, extra_spaces, 0)
+
+
 
     # print(result)
     # add_spaces(result, 0, 0)

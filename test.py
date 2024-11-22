@@ -26,4 +26,3 @@ combinations = generate_dot_distributions(dots, positions)
 # Print all valid combinations
 for combo in combinations:
     print(combo)
-

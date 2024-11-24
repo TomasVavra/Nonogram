@@ -1,6 +1,7 @@
 import re
 import numpy as np
-from typing import List     #for Function Annotations in python 3.8
+import itertools            # for combinatorics
+from typing import List     # for Function Annotations in python 3.8
 
 input_file = "instruction3.txt"
 
@@ -140,7 +141,8 @@ def first_solution_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[
             matrix_line_index += 1
     return result
 
-def add_spaces(l_matrix_line: np.ndarray, spaces: int, position: int):
+# add defined number of spaces to single position
+def add_spaces_to_single_position(l_matrix_line: np.ndarray, spaces: int, position: int):
     result = np.copy(l_matrix_line)
     number_of_first_dots = 0
     first_dot = True    #is it first dot after #?
@@ -161,35 +163,29 @@ def add_spaces(l_matrix_line: np.ndarray, spaces: int, position: int):
     for index, item in enumerate(l_matrix_line):    #excess elements are not copied
         l_matrix_line[index] = result[index]
 
+# for example [0,2,4,0,0], 2 spaces on 1st position and 4 spaces to 2nd position
+def add_spaces_to_many_positions(l_matrix_line: np.ndarray, spaces_positions: List[int]):
+    for position_index, spaces in enumerate(spaces_positions):
+        add_spaces_to_single_position(l_matrix_line, spaces, position_index)
+
 def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     possible_line = first_solution_for_line(l_matrix_line, l_instruction_line)
     result = possible_line
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
     positions = len(l_instruction_line)+1
 
-    def helper(result: np.ndarray, spaces_left: int, current_position: int) -> None:
-        if spaces_left == 0:
-            print(result)
-            return
-        if current_position >= positions:
-            return
+    # Generate all combinations with repetition
+    all_combinations = list(itertools.combinations_with_replacement(range(extra_spaces), positions))
+    # Filter out valid distributions where sum of positions equals number of extra spaces
+    valid_combinations = []
+    for combo in all_combinations:
+        print(combo)
 
-        for i in range(spaces_left + 1):
-            # result[current_position] = i
-            add_spaces(result, i, current_position)
-            helper(result, spaces_left - i, current_position + 1)
-            result = possible_line
-            # result[current_position] = 0  # Reset for the next iteration
-
-    helper(result, extra_spaces, 0)
-
-
-
-    # print(result)
-    # add_spaces(result, 0, 0)
-    # print(result)
-
-    #return result
+        # spaces_positions = [0] * positions
+        # for pos in combo:
+        #     position_count[pos] += 1
+        # if sum(spaces_positions) == extra_spaces:
+        #     valid_combinations.append(spaces_positions)
 
 
 dimension = find_dimensions()
@@ -215,15 +211,17 @@ print()
 print(matrix[13,:])
 print(rows_instruction[13])
 print()
-# print(first_solution_for_line(matrix[13,:],rows_instruction[13]))
+
+line = first_solution_for_line(matrix[13,:],rows_instruction[13])
+print(line)
+print()
+
+all_solutions_for_line(matrix[13,:],rows_instruction[13])
+
+# add_spaces_to_many_positions(line,[3,0,0,0,0,0])
+# print(line)
 # line = first_solution_for_line(matrix[13,:],rows_instruction[13])
-# print(line)
-# add_spaces(line,2,5)
-# print(line)
 
-#print(first_solution_for_line(matrix[13,:],rows_instruction[13]))
-
-print(all_solutions_for_line(matrix[13,:],rows_instruction[13]))
 
 print()
 

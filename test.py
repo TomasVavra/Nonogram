@@ -1,11 +1,11 @@
 import itertools
 
 
-def generate_dot_distributions(dots, positions):
+def generate_dot_distributions(spaces: int, positions: int):
     # Generate all combinations with repetition
-    combinations = list(itertools.combinations_with_replacement(range(positions), dots))
+    combinations = list(itertools.combinations_with_replacement(range(dots), positions))
 
-    # Filter out valid distributions where sum of positions equals number of dots
+    # Filter out valid distributions where sum of positions equals number of spaces
     valid_combinations = []
     for combo in combinations:
         # Count the number of dots in each position

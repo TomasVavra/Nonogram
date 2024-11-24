@@ -107,7 +107,7 @@ def paint_overlap (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[i
         l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
         paint_overlap_in_line(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
 
-def check_solution_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> bool:
+def is_line_valid(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> bool:
     groups = []
     counter = 0
     for item in l_matrix_line:
@@ -120,18 +120,18 @@ def check_solution_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[i
         groups.append(counter)
     return groups == l_instruction_line
 
-def check_solution(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_cols_instruction: List[List[int]]) -> bool:
+def is_solution_valid(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_cols_instruction: List[List[int]]) -> bool:
     for row_index, row in enumerate(l_rows_instruction):
         l_matrix_line = l_matrix[row_index,:]
-        if not check_solution_in_line(l_matrix_line, l_rows_instruction[row_index]):
+        if not is_line_valid(l_matrix_line, l_rows_instruction[row_index]):
             return False
     for col_index, row in enumerate(l_cols_instruction):
         l_matrix_line = l_matrix[:,col_index]
-        if not check_solution_in_line(l_matrix_line, l_cols_instruction[col_index]):
+        if not is_line_valid(l_matrix_line, l_cols_instruction[col_index]):
             return False
     return True
 
-def first_solution_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
+def line_without_extra_spaces(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
     matrix_line_index = 0
     for instruction_line_index, instruction_line_item in enumerate(l_instruction_line):
@@ -143,7 +143,7 @@ def first_solution_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[
             matrix_line_index += 1
     return result
 
-def add_space_to_single_position(l_matrix_line: np.ndarray, desired_position: int):
+def add_space_to_single_position_in_line(l_matrix_line: np.ndarray, desired_position: int):
     result = np.copy(l_matrix_line)
     is_hash = False
     current_position = 0
@@ -164,15 +164,13 @@ def add_space_to_single_position(l_matrix_line: np.ndarray, desired_position: in
         l_matrix_line[index] = result[index]
 
 # for example [0,2,4,0,0], 2 spaces on 1st position and 4 spaces to 2nd position
-def add_spaces_to_many_positions(l_matrix_line: np.ndarray, spaces_positions: List[int]):
+def add_spaces_to_many_positions_in_line(l_matrix_line: np.ndarray, spaces_positions: List[int]):
     for position_index, spaces in enumerate(spaces_positions):
         for space in range(spaces):
-            add_space_to_single_position(l_matrix_line, position_index)
-        # add_spaces_to_single_position(l_matrix_line, spaces, position_index)
+            add_space_to_single_position_in_line(l_matrix_line, position_index)
 
 def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
-    possible_line = first_solution_for_line(l_matrix_line, l_instruction_line)
-    result = np.copy(possible_line)
+    result = []
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
     positions = len(l_instruction_line)+1
 
@@ -184,16 +182,18 @@ def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[i
         for number in spaces_positions:
             l_sum += number
         if l_sum == extra_spaces:
-            print(spaces_positions)
-            result = np.copy(possible_line)
-            add_spaces_to_many_positions(result, spaces_positions)
-            print(result)
-            print()
+            possible_line = np.copy(line_without_extra_spaces(l_matrix_line, l_instruction_line))
+            add_spaces_to_many_positions_in_line(possible_line, spaces_positions)
+            result.append(possible_line)
             count += 1
-    print()
-    print(count)
 
+            # print(spaces_positions)
+            # print(possible_line)
+            # print()
+    # print(count)
+    return np.array(result)
 
+def solution_for_line()
 
 dimension = find_dimensions()
 number_of_rows = dimension[0]
@@ -204,7 +204,7 @@ cols_instruction = find_col_instruction()
 matrix = np.array([[col for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)
 
 paint_overlap(matrix, rows_instruction, is_row = True)
-paint_overlap(matrix, cols_instruction, is_row = False)
+# paint_overlap(matrix, cols_instruction, is_row = False)
 
 print()
 print_matrix(matrix)
@@ -219,14 +219,27 @@ print(matrix[13,:])
 print(rows_instruction[13])
 print()
 
-line = first_solution_for_line(matrix[13,:],rows_instruction[13])
-print(line)
-print()
+# line = line_without_extra_spaces(matrix[13,:],rows_instruction[13])
+# print(line)
+# print()
 
-all_solutions_for_line(matrix[13,:],rows_instruction[13])
+solutions = all_solutions_for_line(matrix[14,:],rows_instruction[14])
+
+# for line in solutions:
+#     print(line)
+# print()
+
+
+for col_index in range(len(solutions[0,:])):
+    all_same = np.all(solutions[:,col_index] == solutions[0,col_index])
+    if all_same:
+        print(col_index, " ", solutions[0,col_index])
 
 
 
+# print()
+# print_matrix(matrix)
+# print()
 
 
 

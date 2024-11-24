@@ -1,12 +1,22 @@
+# This program solves nonogram operates with multiple arrays:
+#   1) Solution matrix in format of numpy array. The final nonogram is displayed here.
+#       "#" represents painted cells and "." empty cells (spaces between packs of painted cels).
+#       Only 100% known cell are painted here as "#" or ".". Rest has column index
+#   2) 2 arrays for rows and columns instructions. Both in format of list of list of int.
+#       Instruction lines has different length. Rows and Columns instructions are in same format,
+#       although columns instruction are usually vertical.
+#   3) 2D numpy array of all solutions for single line (row or column).
+#       Each row is one of possible solution for the same line.
+#       ...
+
 import re
 import numpy as np
 import itertools            # for combinatorics
 from typing import List     # for Function Annotations in python 3.8
 
-from setuptools.command.easy_install import is_sh
-
 input_file = "instruction3.txt"
 
+# Find number of rows and columns in instruction file.
 def find_dimensions() -> List[int]:
     with open(input_file,"r") as file:
         result = [0 for x in range(2)]
@@ -17,6 +27,7 @@ def find_dimensions() -> List[int]:
                 result  [1]= int(re.search(r'\d+', l_line)[0])
     return result
 
+# Finds instructions for rows in instruction file, output them as list of text.
 def find_raw_instruction_rows(l_number_of_rows: int) -> List[str]:
     with open(input_file, "r") as file:
         result = []
@@ -31,6 +42,7 @@ def find_raw_instruction_rows(l_number_of_rows: int) -> List[str]:
                 counter += 1
     return result
 
+# Finds instructions for columns in instruction file, output them as list of text.
 def find_raw_instruction_cols(l_number_of_cols: int) -> List[str]:
     with open(input_file, "r") as file:
         result = []
@@ -45,6 +57,7 @@ def find_raw_instruction_cols(l_number_of_cols: int) -> List[str]:
                 counter += 1
     return result
 
+# Converts instruction from the list of text to 2D list of int.
 def convert_raw_instruction_to_2d_array(l_raw_instruction: List[str]) -> List[List[int]]:     #from list of strings to list of arrays
     result = []
     for line in l_raw_instruction:
@@ -54,19 +67,21 @@ def convert_raw_instruction_to_2d_array(l_raw_instruction: List[str]) -> List[Li
             result[i][j] = int(item)
     return result
 
+# Combines functions to find instructions and convert them to 2D list of int.
 def find_row_instruction() -> List[List[int]]:
     l_dimension = find_dimensions()
     rows_raw_instruction = find_raw_instruction_rows(l_dimension[0])
     result = convert_raw_instruction_to_2d_array(rows_raw_instruction)
     return result
 
+# Combines functions to find instructions and convert them to 2D list of int.
 def find_col_instruction() -> List[List[int]]:
     l_dimension = find_dimensions()
     cols_raw_instruction = find_raw_instruction_cols(l_dimension[1])
     result = convert_raw_instruction_to_2d_array(cols_raw_instruction)
     return result
 
-# in nice way with col and row indexes
+# Print solution matrix in nice way with col and row indexes
 def print_matrix(l_matrix) -> None:
     print("    ", end="")
     for idx, item in enumerate(l_matrix[0]):    #print col indexes
@@ -92,7 +107,8 @@ def print_matrix(l_matrix) -> None:
                 print(" ",end="")
         print("|")
 
-# line can be row or column
+# Line can be row or column of solution matrix.
+# If the line is densely occupied, there are overlaps in packs of cells, which must be painted "#"
 def paint_overlap_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> None:
     offset = 0
     for instruction_line_item in l_instruction_line:
@@ -102,11 +118,13 @@ def paint_overlap_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[in
                 l_matrix_line[i] = "#"
         offset += instruction_line_item + 1
 
+# Paint all overlap for all rows or columns in solution matrix.
 def paint_overlap (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
     for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
         l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
         paint_overlap_in_line(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
 
+# Check, if line of solution matrix fulfill instruction.
 def is_line_valid(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> bool:
     groups = []
     counter = 0
@@ -120,6 +138,7 @@ def is_line_valid(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> b
         groups.append(counter)
     return groups == l_instruction_line
 
+# Check, if solution matrix fulfill instruction.
 def is_solution_valid(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_cols_instruction: List[List[int]]) -> bool:
     for row_index, row in enumerate(l_rows_instruction):
         l_matrix_line = l_matrix[row_index,:]
@@ -131,11 +150,14 @@ def is_solution_valid(l_matrix: np.ndarray, l_rows_instruction: List[List[int]],
             return False
     return True
 
+# First solution for the line, all packs of cells are as left as possible.
+# Only necessary spaces between packs are inserted.
+# Only instructions for given line are considered. Independent of other lines.
 def line_without_extra_spaces(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
     matrix_line_index = 0
     for instruction_line_index, instruction_line_item in enumerate(l_instruction_line):
-        for i in range(matrix_line_index, matrix_line_index + instruction_line_item):   #fill instruction
+        for i in range(matrix_line_index, matrix_line_index + instruction_line_item):
             result[i] = "#"
             matrix_line_index += 1
         if instruction_line_index < len(l_instruction_line) - 1:    #no space behind last instruction
@@ -143,6 +165,7 @@ def line_without_extra_spaces(l_matrix_line: np.ndarray, l_instruction_line: Lis
             matrix_line_index += 1
     return result
 
+# Add space to the position between two packs or at the beginning or at the end.
 def add_space_to_single_position_in_line(l_matrix_line: np.ndarray, desired_position: int):
     result = np.copy(l_matrix_line)
     is_hash = False
@@ -163,12 +186,15 @@ def add_space_to_single_position_in_line(l_matrix_line: np.ndarray, desired_posi
     for index, item in enumerate(l_matrix_line):
         l_matrix_line[index] = result[index]
 
+# Add more spaces to more positions according the list
 # for example [0,2,4,0,0], 2 spaces on 1st position and 4 spaces to 2nd position
 def add_spaces_to_many_positions_in_line(l_matrix_line: np.ndarray, spaces_positions: List[int]):
     for position_index, spaces in enumerate(spaces_positions):
         for space in range(spaces):
             add_space_to_single_position_in_line(l_matrix_line, position_index)
 
+# 2D array of all possible solutions for single line. Each row is valid solution to the line according to instructions
+# All solutions belongs to specific line, solved independently of other lines (rows or columns)
 def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     result = []
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
@@ -176,7 +202,7 @@ def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[i
 
     #Generate all possible distributions of extra spaces to positions
     variations_with_replacement = list(itertools.product(range(extra_spaces +1), repeat=positions))
-    count = 0
+    count = 0       # for debugging, number of all variations
     for spaces_positions in variations_with_replacement:
         l_sum = 0
         for number in spaces_positions:
@@ -186,14 +212,23 @@ def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[i
             add_spaces_to_many_positions_in_line(possible_line, spaces_positions)
             result.append(possible_line)
             count += 1
-
-            # print(spaces_positions)
-            # print(possible_line)
-            # print()
-    # print(count)
     return np.array(result)
 
-def solution_for_line()
+# 3D array of all solutions for all rows or columns.
+# Array of 2D arrays of all solutions for each line.
+def all_solutions_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> np.ndarray:
+    pass
+
+# Go through all possible solutions of single line, output cells always painted "#" or ".".
+def solution_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
+    result = np.array([item for item in range(len(l_matrix_line))], dtype=object)
+    solutions = all_solutions_for_line(l_matrix_line, l_instruction_line)
+    for col_index_in_solutions in range(len(solutions[0,:])):
+        all_same = np.all(solutions[:,col_index_in_solutions] == solutions[0,col_index_in_solutions])
+        if all_same:
+            result[col_index_in_solutions] = solutions[0,col_index_in_solutions]
+            print(col_index_in_solutions, " ", solutions[0,col_index_in_solutions])
+    return result
 
 dimension = find_dimensions()
 number_of_rows = dimension[0]
@@ -215,25 +250,18 @@ print()
 # print(check_solution_in_line(test_row,test_row_instruction))
 # print()
 
-print(matrix[13,:])
-print(rows_instruction[13])
+print(matrix[15,:])
+print(rows_instruction[15])
 print()
 
 # line = line_without_extra_spaces(matrix[13,:],rows_instruction[13])
 # print(line)
 # print()
 
-solutions = all_solutions_for_line(matrix[14,:],rows_instruction[14])
-
-# for line in solutions:
-#     print(line)
-# print()
+print(solution_for_line(matrix[15,:], rows_instruction[15]))
 
 
-for col_index in range(len(solutions[0,:])):
-    all_same = np.all(solutions[:,col_index] == solutions[0,col_index])
-    if all_same:
-        print(col_index, " ", solutions[0,col_index])
+
 
 
 

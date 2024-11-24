@@ -3,6 +3,8 @@ import numpy as np
 import itertools            # for combinatorics
 from typing import List     # for Function Annotations in python 3.8
 
+from setuptools.command.easy_install import is_sh
+
 input_file = "instruction3.txt"
 
 def find_dimensions() -> List[int]:
@@ -141,51 +143,56 @@ def first_solution_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[
             matrix_line_index += 1
     return result
 
-# add defined number of spaces to single position
-def add_spaces_to_single_position(l_matrix_line: np.ndarray, spaces: int, position: int):
+def add_space_to_single_position(l_matrix_line: np.ndarray, desired_position: int):
     result = np.copy(l_matrix_line)
-    number_of_first_dots = 0
-    first_dot = True    #is it first dot after #?
-    for index, item in enumerate(l_matrix_line):
-        if position == number_of_first_dots or (item != "#" and item != "."):   #extra space to the end
-            for space in range(spaces):
-                result = np.insert(result,index,".")
-            break  # extra spaces are placed, I don't want second one
-        if item == "#":
-            first_dot = True
-        if item == "." and first_dot:
-            number_of_first_dots += 1
-            first_dot = False
+    is_hash = False
+    current_position = 0
+    for index, item in enumerate(result):
+        was_hash = is_hash
+        is_hash = True if item == "#" else False
+        if was_hash and not is_hash and desired_position == current_position or desired_position ==0:
+            result = np.insert(result, index, ".")
+            break
+        if was_hash == False and is_hash == True:
+            current_position +=1
+
     # error handling, too much spaces is inserted
-    if spaces > 0 and (result[-spaces] == "#" or result[-spaces] == "."):
-        raise ValueError("The extra element is . or # ")
-    # copy result to original line
-    for index, item in enumerate(l_matrix_line):    #excess elements are not copied
+    if result[-1] == "#" or result[-1] == ".":
+        raise ValueError("Too much spaces is inserted. The extra element is . or # ")
+    # copy result to original line without excess element
+    for index, item in enumerate(l_matrix_line):
         l_matrix_line[index] = result[index]
 
 # for example [0,2,4,0,0], 2 spaces on 1st position and 4 spaces to 2nd position
 def add_spaces_to_many_positions(l_matrix_line: np.ndarray, spaces_positions: List[int]):
     for position_index, spaces in enumerate(spaces_positions):
-        add_spaces_to_single_position(l_matrix_line, spaces, position_index)
+        for space in range(spaces):
+            add_space_to_single_position(l_matrix_line, position_index)
+        # add_spaces_to_single_position(l_matrix_line, spaces, position_index)
 
 def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     possible_line = first_solution_for_line(l_matrix_line, l_instruction_line)
-    result = possible_line
+    result = np.copy(possible_line)
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
     positions = len(l_instruction_line)+1
 
-    # Generate all combinations with repetition
-    all_combinations = list(itertools.combinations_with_replacement(range(extra_spaces), positions))
-    # Filter out valid distributions where sum of positions equals number of extra spaces
-    valid_combinations = []
-    for combo in all_combinations:
-        print(combo)
+    #Generate all possible distributions of extra spaces to positions
+    variations_with_replacement = list(itertools.product(range(extra_spaces +1), repeat=positions))
+    count = 0
+    for spaces_positions in variations_with_replacement:
+        l_sum = 0
+        for number in spaces_positions:
+            l_sum += number
+        if l_sum == extra_spaces:
+            print(spaces_positions)
+            result = np.copy(possible_line)
+            add_spaces_to_many_positions(result, spaces_positions)
+            print(result)
+            print()
+            count += 1
+    print()
+    print(count)
 
-        # spaces_positions = [0] * positions
-        # for pos in combo:
-        #     position_count[pos] += 1
-        # if sum(spaces_positions) == extra_spaces:
-        #     valid_combinations.append(spaces_positions)
 
 
 dimension = find_dimensions()
@@ -218,12 +225,9 @@ print()
 
 all_solutions_for_line(matrix[13,:],rows_instruction[13])
 
-# add_spaces_to_many_positions(line,[3,0,0,0,0,0])
-# print(line)
-# line = first_solution_for_line(matrix[13,:],rows_instruction[13])
 
 
-print()
+
 
 
 

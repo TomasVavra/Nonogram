@@ -1,28 +1,15 @@
 import itertools
 
+variations_with_replacement = list(itertools.product(range(5), repeat=6))
 
-def generate_dot_distributions(spaces: int, positions: int):
-    # Generate all combinations with repetition
-    combinations = list(itertools.combinations_with_replacement(range(dots), positions))
+count = 0
+for line in variations_with_replacement:
+    sum = 0
+    for number in line:
+        sum += number
+    if sum == 4:
+        print(line)
+        count += 1
 
-    # Filter out valid distributions where sum of positions equals number of spaces
-    valid_combinations = []
-    for combo in combinations:
-        # Count the number of dots in each position
-        position_count = [0] * positions
-        for pos in combo:
-            position_count[pos] += 1
-        if sum(position_count) == dots:
-            valid_combinations.append(position_count)
-
-    return valid_combinations
-
-
-# Example usage
-dots = 4
-positions = 6
-combinations = generate_dot_distributions(dots, positions)
-
-# Print all valid combinations
-for combo in combinations:
-    print(combo)
+print()
+print(count)

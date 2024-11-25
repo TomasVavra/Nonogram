@@ -227,11 +227,11 @@ def all_possibilities_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_instruc
     return result
 
 # Go through all possible solutions of single line. Paint cells, which are always "#" or ".".
-def possibilities_overlap_for_line(l_matrix_line: np.ndarray, l_solutions: np.ndarray)
-    for col_index_in_solutions in range(len(l_matrix_line)):
-        all_same = np.all(l_solutions[:,col_index_in_solutions] == l_solutions[0,col_index_in_solutions])
+def possibilities_overlap_for_line(l_matrix_line: np.ndarray, l_lines_possibilities: np.ndarray):
+    for col_index_in_possibilities in range(len(l_matrix_line)):
+        all_same = np.all(l_lines_possibilities[:,col_index_in_possibilities] == l_lines_possibilities[0,col_index_in_possibilities])
         if all_same:
-            l_matrix_line[col_index_in_solutions] = l_solutions[0,col_index_in_solutions]
+            l_matrix_line[col_index_in_possibilities] = l_lines_possibilities[0,col_index_in_possibilities]
 
 # Go through all possible solutions of all rows and cols. Paint cells, which are always "#" or ".".
 def possibilities_overlap(l_matrix: np.ndarray, l_rows_possibilities: List[np.ndarray], l_cols_possibilities: List[np.ndarray]):
@@ -239,6 +239,20 @@ def possibilities_overlap(l_matrix: np.ndarray, l_rows_possibilities: List[np.nd
         possibilities_overlap_for_line(l_matrix[row_index,:], row_possibilities)
     for col_index, col_possibilities in enumerate(l_cols_possibilities):
         possibilities_overlap_for_line(l_matrix[:,col_index], col_possibilities)
+
+# delete possibilities, which are already in conflict with partly solved matrix. Return the rest.
+def delete_obsolete_possibilities_for_line(l_matrix_line: np.ndarray, l_lines_possibilities: np.ndarray) -> np.ndarray:
+    rows_to_delete = []
+    for matrix_index, matrix_item in enumerate(l_matrix_line):
+        for row_index, row in enumerate(l_lines_possibilities):
+            if (matrix_item == "#" or matrix_item == ".") and matrix_item != row[matrix_index]:
+                rows_to_delete.append(row_index)
+    result = np.delete(l_lines_possibilities, rows_to_delete, axis=0)
+    return result
+
+
+
+
 
 
 dimension = find_dimensions()
@@ -257,25 +271,33 @@ print_matrix(matrix)
 print()
 
 
-matrix = np.array([[col for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)
-
-print()
-print_matrix(matrix)
-print()
-
 rows_possibilities = all_possibilities_for_all_lines(matrix,rows_instruction, is_row = True)
 cols_possibilities = all_possibilities_for_all_lines(matrix,cols_instruction, is_row = False)
 
-possibilities_overlap(matrix, rows_possibilities, cols_possibilities)
+# possibilities_overlap(matrix, rows_possibilities, cols_possibilities)
 
-
-
-
-
+line = matrix[15,:]
+possibilities = rows_possibilities[15]
+print(line)
+print(rows_instruction[15])
+for row_index, row in enumerate(possibilities):
+    print(row_index)
+    print(row)
+possibilities = delete_obsolete_possibilities_for_line(line, rows_possibilities[15])
 
 print()
-print_matrix(matrix)
+print("*******************************************")
 print()
+
+
+for row_index, row in enumerate(possibilities):
+    print(row_index)
+    print(row)
+
+
+# print()
+# print_matrix(matrix)
+# print()
 
 
 

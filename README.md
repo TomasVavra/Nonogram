@@ -1,2 +1,3 @@
 # Nonogram
-python
+solver for nonogram
+https://en.wikipedia.org/wiki/Nonogram

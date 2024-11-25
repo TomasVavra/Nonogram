@@ -5,9 +5,9 @@
 #   2) 2 arrays for rows and columns instructions. Both in format of list of list of int.
 #       Instruction lines has different length. Rows and Columns instructions are in same format,
 #       although columns instruction are usually vertical.
-#   3) 2D numpy array of all solutions for single line (row or column).
-#       Each row is one of possible solution for the same line.
-#       ...
+#   3) List od 2D numpy arrays of all solutions for all lines (row or column).
+#       Each element of the list are all possible solutions for single line.
+#       Each row of 2D array is one of possible solution for the same line.
 
 import re
 import numpy as np
@@ -118,11 +118,12 @@ def paint_overlap_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[in
                 l_matrix_line[i] = "#"
         offset += instruction_line_item + 1
 
-# Paint all overlap for all rows or columns in solution matrix.
-def paint_overlap (l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> None:
-    for row_or_col_index, row_or_col in enumerate(l_rows_or_cols_instruction):
-        l_matrix_line = l_matrix[row_or_col_index,:]  if is_row else l_matrix[:,row_or_col_index]
-        paint_overlap_in_line(l_matrix_line, l_rows_or_cols_instruction[row_or_col_index])
+# Paint all overlap for all rows and columns in solution matrix.
+def paint_overlap (l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_cols_instruction: List[List[int]]) -> None:
+    for row_index, row in enumerate(l_rows_instruction):
+        paint_overlap_in_line(l_matrix[row_index,:], l_rows_instruction[row_index])
+    for col_index, col in enumerate(l_cols_instruction):
+        paint_overlap_in_line(l_matrix[:,col_index], l_cols_instruction[col_index])
 
 # Check, if line of solution matrix fulfill instruction.
 def is_line_valid(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> bool:
@@ -195,7 +196,7 @@ def add_spaces_to_many_positions_in_line(l_matrix_line: np.ndarray, spaces_posit
 
 # 2D array of all possible solutions for single line. Each row is valid solution to the line according to instructions
 # All solutions belongs to specific line, solved independently of other lines (rows or columns)
-def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
+def all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     result = []
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
     positions = len(l_instruction_line)+1
@@ -215,20 +216,30 @@ def all_solutions_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[i
     return np.array(result)
 
 # 3D array of all solutions for all rows or columns.
-# Array of 2D arrays of all solutions for each line.
-def all_solutions_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> np.ndarray:
-    pass
-
-# Go through all possible solutions of single line, output cells always painted "#" or ".".
-def solution_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
-    result = np.array([item for item in range(len(l_matrix_line))], dtype=object)
-    solutions = all_solutions_for_line(l_matrix_line, l_instruction_line)
-    for col_index_in_solutions in range(len(solutions[0,:])):
-        all_same = np.all(solutions[:,col_index_in_solutions] == solutions[0,col_index_in_solutions])
-        if all_same:
-            result[col_index_in_solutions] = solutions[0,col_index_in_solutions]
-            print(col_index_in_solutions, " ", solutions[0,col_index_in_solutions])
+# List of 2D arrays of all solutions for each line.
+def all_possibilities_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> List[np.ndarray]:
+    result = []
+    for line_index, instruction_line in enumerate(l_rows_or_cols_instruction):
+        if is_row:
+            result.append(all_possibilities_for_line(l_matrix[line_index,:], instruction_line))
+        else:
+            result.append(all_possibilities_for_line(l_matrix[:,line_index], instruction_line))
     return result
+
+# Go through all possible solutions of single line. Paint cells, which are always "#" or ".".
+def possibilities_overlap_for_line(l_matrix_line: np.ndarray, l_solutions: np.ndarray)
+    for col_index_in_solutions in range(len(l_matrix_line)):
+        all_same = np.all(l_solutions[:,col_index_in_solutions] == l_solutions[0,col_index_in_solutions])
+        if all_same:
+            l_matrix_line[col_index_in_solutions] = l_solutions[0,col_index_in_solutions]
+
+# Go through all possible solutions of all rows and cols. Paint cells, which are always "#" or ".".
+def possibilities_overlap(l_matrix: np.ndarray, l_rows_possibilities: List[np.ndarray], l_cols_possibilities: List[np.ndarray]):
+    for row_index, row_possibilities in enumerate(l_rows_possibilities):
+        possibilities_overlap_for_line(l_matrix[row_index,:], row_possibilities)
+    for col_index, col_possibilities in enumerate(l_cols_possibilities):
+        possibilities_overlap_for_line(l_matrix[:,col_index], col_possibilities)
+
 
 dimension = find_dimensions()
 number_of_rows = dimension[0]
@@ -238,36 +249,33 @@ cols_instruction = find_col_instruction()
 
 matrix = np.array([[col for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)
 
-paint_overlap(matrix, rows_instruction, is_row = True)
-# paint_overlap(matrix, cols_instruction, is_row = False)
+paint_overlap(matrix, rows_instruction, cols_instruction)
+
 
 print()
 print_matrix(matrix)
 print()
 
-# test_row = np.array(['#', '.', '#', '#', '.', '#', '.', "#", '#', '#', '.', '#', '#', ".", '#'])
-# test_row_instruction = [1,2,1,3,2,1]
-# print(check_solution_in_line(test_row,test_row_instruction))
-# print()
 
-print(matrix[15,:])
-print(rows_instruction[15])
+matrix = np.array([[col for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)
+
+print()
+print_matrix(matrix)
 print()
 
-# line = line_without_extra_spaces(matrix[13,:],rows_instruction[13])
-# print(line)
-# print()
+rows_possibilities = all_possibilities_for_all_lines(matrix,rows_instruction, is_row = True)
+cols_possibilities = all_possibilities_for_all_lines(matrix,cols_instruction, is_row = False)
 
-print(solution_for_line(matrix[15,:], rows_instruction[15]))
-
+possibilities_overlap(matrix, rows_possibilities, cols_possibilities)
 
 
 
 
 
-# print()
-# print_matrix(matrix)
-# print()
+
+print()
+print_matrix(matrix)
+print()
 
 
 

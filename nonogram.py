@@ -82,7 +82,7 @@ def find_col_instruction() -> List[List[int]]:
     return result
 
 # Print solution matrix in nice way with col and row indexes
-def print_matrix(l_matrix) -> None:
+def print_matrix_debug(l_matrix) -> None:
     print("    ", end="")
     for idx, item in enumerate(l_matrix[0]):    #print col indexes
         if idx % 5 == 0:
@@ -92,7 +92,7 @@ def print_matrix(l_matrix) -> None:
             print(" ", end="")
     print()
     for idx, row in enumerate(l_matrix):
-        if idx%5 == 0:
+        if idx%5 == 0:                          #row separator every 5 rows
             print("      ", end="")
             [print("----", end="") for item in l_matrix[0]]
             print()
@@ -100,12 +100,18 @@ def print_matrix(l_matrix) -> None:
         if idx < 10:
             print(" ",end="")
         for idy, item in enumerate(row):
-            if idy % 5 == 0:
+            if idy % 5 == 0:                    #col separator every 5 cols
                 print("|  ", end="")
             print(item," ",end="")
             if type(item) != int or item < 10:
                 print(" ",end="")
         print("|")
+
+def print_picture(l_matrix):
+    for row in l_matrix:
+        for item in row:
+            print(item, " ", end="") if item == "#" else print("   ", end="")
+        print()
 
 # Line can be row or column of solution matrix.
 # If the line is densely occupied, there are overlaps in packs of cells, which must be painted "#"
@@ -217,7 +223,7 @@ def all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_line: Li
 
 # 3D array of all solutions for all rows or columns.
 # List of 2D arrays of all solutions for each line.
-def all_possibilities_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> List[np.ndarray]:
+def create_all_possibilities_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> List[np.ndarray]:
     result = []
     for line_index, instruction_line in enumerate(l_rows_or_cols_instruction):
         if is_row:
@@ -227,30 +233,38 @@ def all_possibilities_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_instruc
     return result
 
 # Go through all possible solutions of single line. Paint cells, which are always "#" or ".".
-def possibilities_overlap_for_line(l_matrix_line: np.ndarray, l_lines_possibilities: np.ndarray):
+def possibilities_overlap_for_line(l_matrix_line: np.ndarray, l_single_line_possibilities: np.ndarray):
     for col_index_in_possibilities in range(len(l_matrix_line)):
-        all_same = np.all(l_lines_possibilities[:,col_index_in_possibilities] == l_lines_possibilities[0,col_index_in_possibilities])
+        all_same = np.all(l_single_line_possibilities[:,col_index_in_possibilities] == l_single_line_possibilities[0,col_index_in_possibilities])
         if all_same:
-            l_matrix_line[col_index_in_possibilities] = l_lines_possibilities[0,col_index_in_possibilities]
+            l_matrix_line[col_index_in_possibilities] = l_single_line_possibilities[0,col_index_in_possibilities]
 
 # Go through all possible solutions of all rows and cols. Paint cells, which are always "#" or ".".
-def possibilities_overlap(l_matrix: np.ndarray, l_rows_possibilities: List[np.ndarray], l_cols_possibilities: List[np.ndarray]):
-    for row_index, row_possibilities in enumerate(l_rows_possibilities):
-        possibilities_overlap_for_line(l_matrix[row_index,:], row_possibilities)
-    for col_index, col_possibilities in enumerate(l_cols_possibilities):
-        possibilities_overlap_for_line(l_matrix[:,col_index], col_possibilities)
+def possibilities_overlap(l_matrix: np.ndarray, l_all_rows_possibilities: List[np.ndarray], l_all_cols_possibilities: List[np.ndarray]):
+    for row_index, single_row_possibilities in enumerate(l_all_rows_possibilities):
+        possibilities_overlap_for_line(l_matrix[row_index,:], single_row_possibilities)
+    for col_index, single_col_possibilities in enumerate(l_all_cols_possibilities):
+        possibilities_overlap_for_line(l_matrix[:,col_index], single_col_possibilities)
 
-# delete possibilities, which are already in conflict with partly solved matrix. Return the rest.
-def delete_obsolete_possibilities_for_line(l_matrix_line: np.ndarray, l_lines_possibilities: np.ndarray) -> np.ndarray:
+# delete possibilities of single line, which are already in conflict with partly solved matrix. Return the rest.
+def delete_obsolete_possibilities_for_line(l_matrix_line: np.ndarray, l_single_line_possibilities: np.ndarray) -> np.ndarray:
     rows_to_delete = []
     for matrix_index, matrix_item in enumerate(l_matrix_line):
-        for row_index, row in enumerate(l_lines_possibilities):
+        for row_index, row in enumerate(l_single_line_possibilities):
             if (matrix_item == "#" or matrix_item == ".") and matrix_item != row[matrix_index]:
                 rows_to_delete.append(row_index)
-    result = np.delete(l_lines_possibilities, rows_to_delete, axis=0)
+    result = np.delete(l_single_line_possibilities, rows_to_delete, axis=0)
     return result
 
-
+# delete possibilities of all lines (all rows or all cols), which are already in conflict with partly solved matrix. Return the rest.
+def delete_obsolete_possibilities_for_all_lines(l_matrix: np.ndarray, l_all_lines_possibilities: List[np.ndarray], is_row: bool) -> List[np.ndarray]:
+    result = []
+    for line_index, single_line_possibilities in enumerate(l_all_lines_possibilities):
+        if is_row:
+            result.append(delete_obsolete_possibilities_for_line(l_matrix[line_index, :], single_line_possibilities))
+        else:
+            result.append(delete_obsolete_possibilities_for_line(l_matrix[:, line_index], single_line_possibilities))
+    return result
 
 
 
@@ -265,40 +279,27 @@ matrix = np.array([[col for col in range(number_of_cols)] for row in range(numbe
 
 paint_overlap(matrix, rows_instruction, cols_instruction)
 
-
 print()
-print_matrix(matrix)
-print()
-
-
-rows_possibilities = all_possibilities_for_all_lines(matrix,rows_instruction, is_row = True)
-cols_possibilities = all_possibilities_for_all_lines(matrix,cols_instruction, is_row = False)
-
-# possibilities_overlap(matrix, rows_possibilities, cols_possibilities)
-
-line = matrix[15,:]
-possibilities = rows_possibilities[15]
-print(line)
-print(rows_instruction[15])
-for row_index, row in enumerate(possibilities):
-    print(row_index)
-    print(row)
-possibilities = delete_obsolete_possibilities_for_line(line, rows_possibilities[15])
-
-print()
-print("*******************************************")
+print_matrix_debug(matrix)
 print()
 
+#create possibilities
+rows_possibilities = create_all_possibilities_for_all_lines(matrix,rows_instruction, is_row = True)
+cols_possibilities = create_all_possibilities_for_all_lines(matrix,cols_instruction, is_row = False)
 
-for row_index, row in enumerate(possibilities):
-    print(row_index)
-    print(row)
+#update possibilities and matrix
+for i in range(10):
+    rows_possibilities = delete_obsolete_possibilities_for_all_lines(matrix, rows_possibilities, is_row = True)
+    cols_possibilities = delete_obsolete_possibilities_for_all_lines(matrix, cols_possibilities, is_row = False)
+    possibilities_overlap(matrix, rows_possibilities, cols_possibilities)
 
+print()
+print_matrix_debug(matrix)
+print()
 
-# print()
-# print_matrix(matrix)
-# print()
-
+print()
+print_picture(matrix)
+print()
 
 
 

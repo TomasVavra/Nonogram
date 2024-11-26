@@ -14,7 +14,7 @@ import numpy as np
 import itertools            # for combinatorics
 from typing import List     # for Function Annotations in python 3.8
 
-input_file = "instruction4.txt"
+input_file = "instruction3.txt"
 
 # Find number of rows and columns in instruction file.
 def find_dimensions() -> List[int]:
@@ -81,6 +81,7 @@ def find_col_instruction() -> List[List[int]]:
     result = convert_raw_instruction_to_2d_array(cols_raw_instruction)
     return result
 
+# sum of all instruction for row must be equal to the sum of all columns instruction
 def is_instruction_valid(l_rows_instruction, l_cols_instruction):
     sum_row = 0
     for row in l_rows_instruction:
@@ -120,6 +121,7 @@ def print_matrix_debug(l_matrix) -> None:
                 print(" ",end="")
         print("|")
 
+# print final picture with only "#"
 def print_picture(l_matrix):
     for row in l_matrix:
         for item in row:
@@ -230,8 +232,9 @@ def all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_line: Li
         if l_sum == extra_spaces:
             possible_line = np.copy(line_without_extra_spaces(l_matrix_line, l_instruction_line))
             add_spaces_to_many_positions_in_line(possible_line, spaces_positions)
-            result.append(possible_line)
-            count += 1
+            if not is_line_obsolete(l_matrix_line, possible_line):      #check possible line with matrix
+                result.append(possible_line)
+                count += 1
     return np.array(result)
 
 # 3D array of all solutions for all rows or columns.
@@ -259,13 +262,18 @@ def possibilities_overlap(l_matrix: np.ndarray, l_all_rows_possibilities: List[n
     for col_index, single_col_possibilities in enumerate(l_all_cols_possibilities):
         possibilities_overlap_for_line(l_matrix[:,col_index], single_col_possibilities)
 
+# Is possible solution for line in conflict with partly solved matrix?
+def is_line_obsolete(l_matrix_line: np.ndarray, l_line_possibility: np.ndarray) -> bool:
+    for matrix_index, matrix_item in enumerate(l_matrix_line):
+        if (matrix_item == "#" or matrix_item == ".") and matrix_item != l_line_possibility[matrix_index]:
+            return True
+
 # delete possibilities of single line, which are already in conflict with partly solved matrix. Return the rest.
 def delete_obsolete_possibilities_for_line(l_matrix_line: np.ndarray, l_single_line_possibilities: np.ndarray) -> np.ndarray:
     rows_to_delete = []
-    for matrix_index, matrix_item in enumerate(l_matrix_line):
-        for row_index, row in enumerate(l_single_line_possibilities):
-            if (matrix_item == "#" or matrix_item == ".") and matrix_item != row[matrix_index]:
-                rows_to_delete.append(row_index)
+    for row_index, row in enumerate(l_single_line_possibilities):
+        if is_line_obsolete(l_matrix_line, row):
+            rows_to_delete.append(row_index)
     result = np.delete(l_single_line_possibilities, rows_to_delete, axis=0)
     return result
 
@@ -310,10 +318,10 @@ for i in range(10):
 print()
 print_matrix_debug(matrix)
 print()
-#
-# print()
-# print_picture(matrix)
-# print()
+
+print()
+print_picture(matrix)
+print()
 
 
 

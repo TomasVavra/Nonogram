@@ -14,7 +14,7 @@ import numpy as np
 import itertools            # for combinatorics
 from typing import List     # for Function Annotations in python 3.8
 
-input_file = "instruction3.txt"
+input_file = "instruction4.txt"
 
 # Find number of rows and columns in instruction file.
 def find_dimensions() -> List[int]:
@@ -80,6 +80,19 @@ def find_col_instruction() -> List[List[int]]:
     cols_raw_instruction = find_raw_instruction_cols(l_dimension[1])
     result = convert_raw_instruction_to_2d_array(cols_raw_instruction)
     return result
+
+def is_instruction_valid(l_rows_instruction, l_cols_instruction):
+    sum_row = 0
+    for row in l_rows_instruction:
+        for item in row:
+            sum_row += item
+    sum_col = 0
+    for row in l_cols_instruction:
+        for item in row:
+            sum_col += item
+    # error handling
+    if sum_row != sum_col:
+        raise ValueError("sum of row instruction != sum of cols instruction")
 
 # Print solution matrix in nice way with col and row indexes
 def print_matrix_debug(l_matrix) -> None:
@@ -274,6 +287,7 @@ number_of_rows = dimension[0]
 number_of_cols = dimension[1]
 rows_instruction = find_row_instruction()
 cols_instruction = find_col_instruction()
+is_instruction_valid(rows_instruction, cols_instruction)
 
 matrix = np.array([[col for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)
 
@@ -296,10 +310,10 @@ for i in range(10):
 print()
 print_matrix_debug(matrix)
 print()
-
-print()
-print_picture(matrix)
-print()
+#
+# print()
+# print_picture(matrix)
+# print()
 
 
 

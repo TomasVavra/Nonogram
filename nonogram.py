@@ -13,7 +13,7 @@ import re
 import numpy as np
 from typing import List     # for Function Annotations in python 3.8
 
-input_file = "instruction4.txt"
+input_file = "instruction3.txt"
 
 # Find number of rows and columns in instruction file.
 def find_dimensions() -> List[int]:

@@ -11,10 +11,9 @@
 
 import re
 import numpy as np
-import itertools            # for combinatorics
 from typing import List     # for Function Annotations in python 3.8
 
-input_file = "instruction3.txt"
+input_file = "instruction4.txt"
 
 # Find number of rows and columns in instruction file.
 def find_dimensions() -> List[int]:
@@ -215,6 +214,24 @@ def add_spaces_to_many_positions_in_line(l_matrix_line: np.ndarray, spaces_posit
         for space in range(spaces):
             add_space_to_single_position_in_line(l_matrix_line, position_index)
 
+# generate list of all combinations how to distribute extra spaces to positions
+def generate_combinations(l_spaces: int, l_positions: int) -> List[List[int]]:
+    def helper(spaces_left, current_combination, current_position):
+        if spaces_left == 0:
+            l_combinations.append(current_combination[:])
+            return
+        if current_position >= l_positions:
+            return
+        for i in range(spaces_left + 1):
+            current_combination[current_position] = i
+            helper(spaces_left - i, current_combination, current_position + 1)
+            current_combination[current_position] = 0  # Reset for the next iteration
+
+    l_combinations = []
+    initial_combination = [0] * l_positions
+    helper(l_spaces, initial_combination, 0)
+    return l_combinations
+
 # 2D array of all possible solutions for single line. Each row is valid solution to the line according to instructions
 # All solutions belongs to specific line, solved independently of other lines (rows or columns)
 def all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
@@ -222,19 +239,14 @@ def all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_line: Li
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
     positions = len(l_instruction_line)+1
 
-    #Generate all possible distributions of extra spaces to positions
-    variations_with_replacement = list(itertools.product(range(extra_spaces +1), repeat=positions))
-    count = 0       # for debugging, number of all variations
-    for spaces_positions in variations_with_replacement:
-        l_sum = 0
-        for number in spaces_positions:
-            l_sum += number
-        if l_sum == extra_spaces:
-            possible_line = np.copy(line_without_extra_spaces(l_matrix_line, l_instruction_line))
-            add_spaces_to_many_positions_in_line(possible_line, spaces_positions)
-            if not is_line_obsolete(l_matrix_line, possible_line):      #check possible line with matrix
-                result.append(possible_line)
-                count += 1
+    combinations_of_spaces = generate_combinations(extra_spaces, positions)
+    count = 0       # for debugging, number of all combinations
+    for spaces_positions in combinations_of_spaces:
+        possible_line = np.copy(line_without_extra_spaces(l_matrix_line, l_instruction_line))
+        add_spaces_to_many_positions_in_line(possible_line, spaces_positions)
+        if not is_line_obsolete(l_matrix_line, possible_line):      #check possible line with matrix
+            result.append(possible_line)
+            count += 1
     return np.array(result)
 
 # 3D array of all solutions for all rows or columns.
@@ -272,7 +284,7 @@ def is_line_obsolete(l_matrix_line: np.ndarray, l_line_possibility: np.ndarray) 
 def delete_obsolete_possibilities_for_line(l_matrix_line: np.ndarray, l_single_line_possibilities: np.ndarray) -> np.ndarray:
     rows_to_delete = []
     for row_index, row in enumerate(l_single_line_possibilities):
-        if is_line_obsolete(l_matrix_line, row):
+        if is_line_obsolete(l_matrix_line, np.array(row)):
             rows_to_delete.append(row_index)
     result = np.delete(l_single_line_possibilities, rows_to_delete, axis=0)
     return result
@@ -311,9 +323,10 @@ cols_possibilities = create_all_possibilities_for_all_lines(matrix,cols_instruct
 
 #update possibilities and matrix
 for i in range(10):
+    possibilities_overlap(matrix, rows_possibilities, cols_possibilities)
     rows_possibilities = delete_obsolete_possibilities_for_all_lines(matrix, rows_possibilities, is_row = True)
     cols_possibilities = delete_obsolete_possibilities_for_all_lines(matrix, cols_possibilities, is_row = False)
-    possibilities_overlap(matrix, rows_possibilities, cols_possibilities)
+
 
 print()
 print_matrix_debug(matrix)
@@ -322,13 +335,3 @@ print()
 print()
 print_picture(matrix)
 print()
-
-
-
-
-
-
-
-
-
-

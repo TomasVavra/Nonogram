@@ -204,7 +204,7 @@ def generate_combinations(l_spaces: int, l_positions: int) -> np.ndarray:
     helper(l_spaces, initial_combination, 0)
     return np.array(l_combinations)
 
-# Add more spaces to more positions according the list of combinations
+# Add extra spaces to positions according the list of combinations
 # for example [2,0,4,0,0], 2 spaces on 0th position and 4 spaces to 2nd position
 def add_spaces_to_positions_in_line(l_possible_matrix_line: np.ndarray, l_instruction_line: List[int], spaces_positions: List[int]) -> np.ndarray:
     result = l_possible_matrix_line
@@ -218,7 +218,7 @@ def add_spaces_to_positions_in_line(l_possible_matrix_line: np.ndarray, l_instru
             result = np.insert(result, position, ".")
             inserted_spaces += 1
     if (result[-inserted_spaces] == "#" or result[-inserted_spaces] == ".") and inserted_spaces > 0:
-        raise ValueError("Too much spaces is inserted. The extra element is . or # ")
+        raise ValueError("Too much spaces inserted. The extra element is . or # ")
     return result[:len(l_possible_matrix_line)]
 
 # 2D array of all possible solutions for single line. Each row is valid solution to the line according to instructions

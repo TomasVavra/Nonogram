@@ -24,10 +24,8 @@ combinations = generate_combinations(spaces, positions)
 
 # Print all valid combinations
 for combo in combinations:
-    print(type(combo))
+    print(combo)
 
-print(combinations[0])
-print(type(combinations[0]))
-print(type(combinations))
+
 
 

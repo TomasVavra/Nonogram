@@ -174,7 +174,7 @@ def is_solution_valid(l_matrix: np.ndarray, l_rows_instruction: List[List[int]],
 # First solution for the line, all packs of cells are as left as possible.
 # Only necessary spaces between packs are inserted.
 # Only instructions for given line are considered. Independent of other lines.
-def line_without_extra_spaces(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
+def get_line_without_extra_spaces(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
     matrix_line_index = 0
     for instruction_line_index, instruction_line_item in enumerate(l_instruction_line):
@@ -187,8 +187,8 @@ def line_without_extra_spaces(l_matrix_line: np.ndarray, l_instruction_line: Lis
     return result
 
 # Add space to the position between two packs or at the beginning or at the end.
-def add_space_to_single_position_in_line(l_matrix_line: np.ndarray, desired_position: int):
-    result = np.copy(l_matrix_line)
+def add_space_to_single_position_in_line(l_possible_matrix_line: np.ndarray, desired_position: int):
+    result = np.copy(l_possible_matrix_line)
     is_hash = False
     current_position = 0
     for index, item in enumerate(result):
@@ -204,18 +204,20 @@ def add_space_to_single_position_in_line(l_matrix_line: np.ndarray, desired_posi
     if result[-1] == "#" or result[-1] == ".":
         raise ValueError("Too much spaces is inserted. The extra element is . or # ")
     # copy result to original line without excess element
-    for index, item in enumerate(l_matrix_line):
-        l_matrix_line[index] = result[index]
+    for index, item in enumerate(l_possible_matrix_line):
+        l_possible_matrix_line[index] = result[index]
+
+
 
 # Add more spaces to more positions according the list
 # for example [0,2,4,0,0], 2 spaces on 1st position and 4 spaces to 2nd position
-def add_spaces_to_many_positions_in_line(l_matrix_line: np.ndarray, spaces_positions: List[int]):
+def add_spaces_to_many_positions_in_line(l_possible_matrix_line: np.ndarray, spaces_positions: List[int]):
     for position_index, spaces in enumerate(spaces_positions):
         for space in range(spaces):
-            add_space_to_single_position_in_line(l_matrix_line, position_index)
+            add_space_to_single_position_in_line(l_possible_matrix_line, position_index)
 
 # generate list of all combinations how to distribute extra spaces to positions
-def generate_combinations(l_spaces: int, l_positions: int) -> List[List[int]]:
+def generate_combinations(l_spaces: int, l_positions: int) -> np.ndarray:
     def helper(spaces_left, current_combination, current_position):
         if spaces_left == 0:
             l_combinations.append(current_combination[:])
@@ -230,7 +232,7 @@ def generate_combinations(l_spaces: int, l_positions: int) -> List[List[int]]:
     l_combinations = []
     initial_combination = [0] * l_positions
     helper(l_spaces, initial_combination, 0)
-    return l_combinations
+    return np.array(l_combinations)
 
 # 2D array of all possible solutions for single line. Each row is valid solution to the line according to instructions
 # All solutions belongs to specific line, solved independently of other lines (rows or columns)
@@ -238,15 +240,19 @@ def all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_line: Li
     result = []
     extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
     positions = len(l_instruction_line)+1
+    line_without_extra_spaces = get_line_without_extra_spaces(l_matrix_line, l_instruction_line)
 
     combinations_of_spaces = generate_combinations(extra_spaces, positions)
     count = 0       # for debugging, number of all combinations
     for spaces_positions in combinations_of_spaces:
-        possible_line = np.copy(line_without_extra_spaces(l_matrix_line, l_instruction_line))
+        possible_line = np.copy(line_without_extra_spaces)
         add_spaces_to_many_positions_in_line(possible_line, spaces_positions)
         if not is_line_obsolete(l_matrix_line, possible_line):      #check possible line with matrix
             result.append(possible_line)
             count += 1
+            if count % 1000 == 0:
+                print(count)
+    print(count)
     return np.array(result)
 
 # 3D array of all solutions for all rows or columns.
@@ -256,8 +262,10 @@ def create_all_possibilities_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_
     for line_index, instruction_line in enumerate(l_rows_or_cols_instruction):
         if is_row:
             result.append(all_possibilities_for_line(l_matrix[line_index,:], instruction_line))
+            print("row ",line_index)
         else:
             result.append(all_possibilities_for_line(l_matrix[:,line_index], instruction_line))
+            print("col ", line_index)
     return result
 
 # Go through all possible solutions of single line. Paint cells, which are always "#" or ".".
@@ -310,6 +318,7 @@ cols_instruction = find_col_instruction()
 is_instruction_valid(rows_instruction, cols_instruction)
 
 matrix = np.array([[col for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)
+previous_matrix = np.array([[0 for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)
 
 paint_overlap(matrix, rows_instruction, cols_instruction)
 
@@ -322,7 +331,8 @@ rows_possibilities = create_all_possibilities_for_all_lines(matrix,rows_instruct
 cols_possibilities = create_all_possibilities_for_all_lines(matrix,cols_instruction, is_row = False)
 
 #update possibilities and matrix
-for i in range(10):
+while not np.array_equal(previous_matrix, matrix):
+    previous_matrix = np.copy(matrix)
     possibilities_overlap(matrix, rows_possibilities, cols_possibilities)
     rows_possibilities = delete_obsolete_possibilities_for_all_lines(matrix, rows_possibilities, is_row = True)
     cols_possibilities = delete_obsolete_possibilities_for_all_lines(matrix, cols_possibilities, is_row = False)

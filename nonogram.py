@@ -2,6 +2,7 @@ import re
 import numpy as np
 from typing import List     # for Function Annotations in python 3.8
 
+# not optimilized for large input, as "instruction4.txt"
 input_file = "instruction3.txt"
 
 # Find number of rows and columns in instruction file.
@@ -138,13 +139,19 @@ def paint_overlap (l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_
 def is_line_valid(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> bool:
     groups = []
     counter = 0
+    was_hash = False
+    is_hash = False
     for item in l_matrix_line:
         if item == "#":
+            is_hash = True
             counter += 1
         elif item == ".":
+            is_hash = False
+        if is_hash == False and was_hash == True:
             groups.append(counter)
             counter = 0
-    if counter > 0:
+        was_hash = is_hash
+    if l_matrix_line[-1] == "#":
         groups.append(counter)
     return groups == l_instruction_line
 
@@ -153,11 +160,11 @@ def is_solution_valid(l_matrix: np.ndarray, l_rows_instruction: List[List[int]],
     for row_index, row in enumerate(l_rows_instruction):
         l_matrix_line = l_matrix[row_index,:]
         if not is_line_valid(l_matrix_line, l_rows_instruction[row_index]):
-            raise ValueError("solution not valid")
+            raise ValueError(f"solution not valid in row {row_index}")
     for col_index, row in enumerate(l_cols_instruction):
         l_matrix_line = l_matrix[:,col_index]
         if not is_line_valid(l_matrix_line, l_cols_instruction[col_index]):
-            raise ValueError("solution not valid")
+            raise ValueError(f"solution not valid in row {col_index}")
     return True
 
 # First solution for the line, all packs of cells are as left as possible.
@@ -283,8 +290,6 @@ def delete_obsolete_possibilities_for_all_lines(l_matrix: np.ndarray, l_all_line
     return result
 
 
-
-
 dimension = find_dimensions()
 number_of_rows = dimension[0]
 number_of_cols = dimension[1]
@@ -300,7 +305,6 @@ paint_overlap(matrix, rows_instruction, cols_instruction)
 print()
 print_matrix_debug(matrix)
 print()
-
 
 # instruction_line = rows_instruction[15]
 # matrix_line = matrix[15,:]
@@ -331,5 +335,5 @@ print()
 print()
 print_picture(matrix)
 print()
-# print(is_solution_valid(matrix, rows_instruction, cols_instruction))
+print(" Is solution valid? ",is_solution_valid(matrix, rows_instruction, cols_instruction))
 print()

@@ -23,6 +23,7 @@ positions = 8
 combinations = generate_combinations(spaces, positions)
 
 # Print all valid combinations
+#
 for combo in combinations:
     print(combo)
 

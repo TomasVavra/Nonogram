@@ -2,7 +2,7 @@ import re
 import numpy as np
 from typing import List     # for Function Annotations in python 3.8
 
-# not optimilized for large input, as "instruction4.txt"
+# not optimized for large input, as "instruction4.txt"
 input_file = "instruction3.txt"
 
 # Find number of rows and columns in instruction file.

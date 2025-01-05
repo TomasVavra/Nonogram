@@ -320,7 +320,7 @@ print()
 rows_possibilities = create_all_possibilities_for_all_lines(matrix,rows_instruction, is_row = True)
 cols_possibilities = create_all_possibilities_for_all_lines(matrix,cols_instruction, is_row = False)
 
-#update possibilities and matrix
+#update possibilities and matrix till matrix is changing
 while not np.array_equal(previous_matrix, matrix):
     previous_matrix = np.copy(matrix)
     possibilities_overlap(matrix, rows_possibilities, cols_possibilities)
@@ -336,4 +336,3 @@ print()
 print_picture(matrix)
 print()
 print(" Is solution valid? ",is_solution_valid(matrix, rows_instruction, cols_instruction))
-print()

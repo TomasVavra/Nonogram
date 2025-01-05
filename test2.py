@@ -1,32 +1,18 @@
-def generate_combinations(l_spaces, l_positions):
-    def helper(spaces_left, current_combination, current_position):
-        if spaces_left == 0:
-            l_combinations.append(current_combination[:])
-            return
-        if current_position >= positions:
-            return
-
-        for i in range(spaces_left + 1):
-            current_combination[current_position] = i
-            helper(spaces_left - i, current_combination, current_position + 1)
-            current_combination[current_position] = 0  # Reset for the next iteration
-
-    l_combinations = []
-    initial_combination = [0] * positions
-    helper(spaces, initial_combination, 0)
-    return l_combinations
+from multiprocessing import Pool, cpu_count
+import numpy as np
 
 
-# Example usage
-spaces = 20
-positions = 8
-combinations = generate_combinations(spaces, positions)
+def f(x):
+    return x*x
 
-# Print all valid combinations
-#
-for combo in combinations:
-    print(combo)
+if __name__ == '__main__':
+    a = np.array([1,2,3,4])
+    print(a,"\n")
 
-
-
-
+    num_cores = cpu_count()
+    with Pool(processes=num_cores) as pool:
+        result = pool.map(f, a)
+    print(num_cores)
+    print(a)
+    print(result)
+    print()

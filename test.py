@@ -1,31 +1,47 @@
 import numpy as np
-from multiprocessing import Pool
-from typing import List
+from multiprocessing import Pool, cpu_count
+from typing import List, Tuple
 
-def create_all_possibilities_for_line(line: np.ndarray, instruction: List[int]) -> np.ndarray:
-    # Placeholder for your existing line processing function
-    return np.array([])
+def get_line_without_extra_spaces(l_matrix_line, l_instruction_line):
+    # Your logic here
+    pass
 
-def worker_task(l_matrix: np.ndarray, instruction_line: List[int], line_index: int, is_row: bool) -> np.ndarray:
-    if is_row:
-        result = create_all_possibilities_for_line(l_matrix[line_index, :], instruction_line)
-        print("row ", line_index)
-    else:
-        result = create_all_possibilities_for_line(l_matrix[:, line_index], instruction_line)
-        print("col ", line_index)
-    return result
+def generate_combinations(extra_spaces, positions):
+    # Your logic here
+    pass
 
-def create_all_possibilities_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> List[np.ndarray]:
-    num_cores = multiprocessing.cpu_count()
+def add_spaces_to_positions_in_line(line_without_extra_spaces, l_instruction_line, spaces_positions):
+    # Your logic here
+    pass
+
+def is_line_obsolete(l_matrix_line, possible_line):
+    # Your logic here
+    pass
+
+def process_combination(args: Tuple[np.ndarray, List[int], np.ndarray, List[int]]) -> np.ndarray:
+    line_without_extra_spaces, l_instruction_line, spaces_positions, l_matrix_line = args
+    possible_line = add_spaces_to_positions_in_line(line_without_extra_spaces, l_instruction_line, spaces_positions)
+    if not is_line_obsolete(l_matrix_line, possible_line):  # Check possible line with matrix
+        return possible_line
+    return None
+
+def create_all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
+    result = []
+    extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
+    positions = len(l_instruction_line) + 1
+    line_without_extra_spaces = get_line_without_extra_spaces(l_matrix_line, l_instruction_line)
+
+    combinations_of_spaces = generate_combinations(extra_spaces, positions)
+    tasks = [(line_without_extra_spaces, l_instruction_line, spaces_positions, l_matrix_line) for spaces_positions in combinations_of_spaces]
+
+    num_cores = cpu_count()
     with Pool(processes=num_cores) as pool:
-        tasks = [(l_matrix, instruction_line, line_index, is_row) for line_index, instruction_line in enumerate(l_rows_or_cols_instruction)]
-        result = pool.starmap(worker_task, tasks)
-    return result
+        results = pool.map(process_combination, tasks)
+
+    result = [res for res in results if res is not None]
+    return np.array(result)
 
 # Example usage
-l_matrix = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
-l_rows_or_cols_instruction = [[1], [1], [1]]
-is_row = True
-
-result = create_all_possibilities_for_all_lines(l_matrix, l_rows_or_cols_instruction, is_row)
-print(result)
+l_matrix_line = np.array(...)  # Your matrix line data here
+l_instruction_line = [...]  # Your instruction line data here
+result = create_all_possibilities_for_line(l_matrix_line, l_instruction_line)

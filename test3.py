@@ -1,5 +1,6 @@
 import re
 import numpy as np
+from multiprocessing import Pool, cpu_count
 from typing import List     # for Function Annotations in python 3.8
 
 # not optimized for large input, as "instruction4.txt"
@@ -226,15 +227,15 @@ def create_all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_l
     line_without_extra_spaces = get_line_without_extra_spaces(l_matrix_line, l_instruction_line)
 
     combinations_of_spaces = generate_combinations(extra_spaces, positions)
-    # count = 0       # for debugging, number of all combinations
+
+    with Pool(processes=cpu_count()) as pool:
+        result = pool.starmap(add_spaces_to_positions_in_line, (line_without_extra_spaces,l_instruction_line, combinations_of_spaces))
+
     for spaces_positions in combinations_of_spaces:
         possible_line = add_spaces_to_positions_in_line(line_without_extra_spaces,l_instruction_line, spaces_positions)
         if not is_line_obsolete(l_matrix_line, possible_line):      #check possible line with matrix
             result.append(possible_line)
-    #         count += 1
-    #         if count % 10000 == 0:
-    #             print(count)
-    # print(count)
+
     return np.array(result)
 
 # 3D array of all solutions for all rows or columns.
@@ -249,6 +250,8 @@ def create_all_possibilities_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_
             result.append(create_all_possibilities_for_line(l_matrix[:,line_index], instruction_line))
             print("col ", line_index)
     return result
+
+
 
 # Go through all possible solutions of single line. Paint cells, which are always "#" or ".".
 def possibilities_overlap_for_line(l_matrix_line: np.ndarray, l_single_line_possibilities: np.ndarray):

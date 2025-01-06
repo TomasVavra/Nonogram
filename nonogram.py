@@ -1,5 +1,6 @@
 import re
 import numpy as np
+from multiprocessing import Pool, cpu_count
 from typing import List     # for Function Annotations in python 3.8
 
 # not optimized for large input, as "instruction4.txt"
@@ -237,17 +238,29 @@ def create_all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_l
     # print(count)
     return np.array(result)
 
+# All solutions for individual lines are created in parallel on multiple cpu cores
+def worker_task(l_matrix_line: np.ndarray, instruction_line: List[int], line_index: int, is_row: bool) -> np.ndarray:
+    result = create_all_possibilities_for_line(l_matrix_line, instruction_line)
+    if is_row:
+        print("row ", line_index)
+    else:
+        print("col ", line_index)
+    return result
+
 # 3D array of all solutions for all rows or columns.
 # List of 2D arrays of all solutions for each line.
 def create_all_possibilities_for_all_lines(l_matrix: np.ndarray, l_rows_or_cols_instruction: List[List[int]], is_row: bool) -> List[np.ndarray]:
-    result = []
-    for line_index, instruction_line in enumerate(l_rows_or_cols_instruction):
-        if is_row:
-            result.append(create_all_possibilities_for_line(l_matrix[line_index,:], instruction_line))
-            print("row ",line_index)
-        else:
-            result.append(create_all_possibilities_for_line(l_matrix[:,line_index], instruction_line))
-            print("col ", line_index)
+    tasks = []
+    if is_row:
+        tasks = [(l_matrix[line_index, :], instruction_line, line_index, is_row) for line_index, instruction_line in
+                 enumerate(l_rows_or_cols_instruction)]
+    else:
+        tasks = [(l_matrix[:, line_index], instruction_line, line_index, is_row) for line_index, instruction_line in
+                 enumerate(l_rows_or_cols_instruction)]
+
+    with Pool(processes=cpu_count()) as pool:
+        result = pool.starmap(worker_task, tasks)
+
     return result
 
 # Go through all possible solutions of single line. Paint cells, which are always "#" or ".".

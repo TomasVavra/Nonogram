@@ -22,6 +22,7 @@ This program operates with multiple arrays:
      
      
 Program steps:
+
     1) Reads instruction and picture dimensions from the file.
     2) Create empty matrix of given size.
     3) Fill the overlapping instruction to the matrix. 

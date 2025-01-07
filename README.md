@@ -13,7 +13,7 @@ This program operates with multiple arrays:
       although columns instruction are usually vertical.
       
     3) List of 2D numpy arrays of all solutions for all lines (row or column).
-      Each element of the list are all possible solutions for single line.
+      Each element of the list is all possible solutions for single line.
       Each row of 2D array is one of possible solution for the same line.
       
     4) List of all combinations, how to insert extra spaces to positions.

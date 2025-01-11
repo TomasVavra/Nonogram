@@ -17,8 +17,8 @@ def find_dimensions() -> List[int]:
                 result  [1]= int(re.search(r'\d+', l_line)[0])
     return result
 
-# Finds instructions for rows in instruction file, output them as list of text.
-def find_raw_instruction_rows(l_number_of_rows: int) -> List[str]:
+# Finds instructions for rows in instruction file, output them as 2D list of int.
+def find_instructions_row(l_number_of_rows: int) -> List[List[int]]:
     with open(input_file, "r") as file:
         result = []
         counter = 0
@@ -28,12 +28,17 @@ def find_raw_instruction_rows(l_number_of_rows: int) -> List[str]:
                 start_counter = True
             if start_counter:
                 if 0 < counter <= l_number_of_rows:
-                    result.append(line.strip())
+                    raw_line = []
+                    result_line = []
+                    raw_line = re.findall(r'\d+', line)     # list of strings
+                    for item in raw_line:
+                        result_line.append(int(item))              # convert to list of int
+                    result.append(result_line)
                 counter += 1
     return result
 
-# Finds instructions for columns in instruction file, output them as list of text.
-def find_raw_instruction_cols(l_number_of_cols: int) -> List[str]:
+# Finds instructions for columns in instruction file, output them as 2D list of int.
+def find_instructions_col(l_number_of_cols: int) -> List[List[int]]:
     with open(input_file, "r") as file:
         result = []
         counter = 0
@@ -43,32 +48,13 @@ def find_raw_instruction_cols(l_number_of_cols: int) -> List[str]:
                 start_counter = True
             if start_counter:
                 if 0 < counter <= l_number_of_cols:
-                    result.append(line.strip())
+                    raw_line = []
+                    result_line = []
+                    raw_line = re.findall(r'\d+', line)
+                    for item in raw_line:
+                        result_line.append(int(item))
+                    result.append(result_line)
                 counter += 1
-    return result
-
-# Converts instruction from the list of text to 2D list of int.
-def convert_raw_instruction_to_2d_array(l_raw_instruction: List[str]) -> List[List[int]]:     #from list of strings to list of arrays
-    result = []
-    for line in l_raw_instruction:
-        result.append(re.findall(r'\d+', line))     #find numbers, but it is List[List[str]
-    for i, row in enumerate(result):                       #convert them to int
-        for j, item in enumerate(row):
-            result[i][j] = int(item)
-    return result
-
-# Combines functions to find instructions and convert them to 2D list of int.
-def find_row_instruction() -> List[List[int]]:
-    l_dimension = find_dimensions()
-    rows_raw_instruction = find_raw_instruction_rows(l_dimension[0])
-    result = convert_raw_instruction_to_2d_array(rows_raw_instruction)
-    return result
-
-# Combines functions to find instructions and convert them to 2D list of int.
-def find_col_instruction() -> List[List[int]]:
-    l_dimension = find_dimensions()
-    cols_raw_instruction = find_raw_instruction_cols(l_dimension[1])
-    result = convert_raw_instruction_to_2d_array(cols_raw_instruction)
     return result
 
 # sum of all instruction for row must be equal to the sum of all columns instruction
@@ -306,8 +292,10 @@ def delete_obsolete_possibilities_for_all_lines(l_matrix: np.ndarray, l_all_line
 dimension = find_dimensions()
 number_of_rows = dimension[0]
 number_of_cols = dimension[1]
-rows_instruction = find_row_instruction()
-cols_instruction = find_col_instruction()
+
+rows_instruction = find_instructions_row(number_of_rows)
+cols_instruction = find_instructions_col(number_of_cols)
+
 is_instruction_valid(rows_instruction, cols_instruction)
 
 matrix = np.array([[col for col in range(number_of_cols)] for row in range(number_of_rows)], dtype=object)

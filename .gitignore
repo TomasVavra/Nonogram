@@ -2,3 +2,4 @@
 .idea/ 
 # Ignore the virtual environment directory 
 .venv/
+.git/

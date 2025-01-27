@@ -307,16 +307,6 @@ print()
 print_matrix_debug(matrix)
 print()
 
-# instruction_line = rows_instruction[15]
-# matrix_line = matrix[15,:]
-# spaces_positions = [0,0,0,0]
-# l_possible_matrix_line = get_line_without_extra_spaces(matrix_line, instruction_line)
-# print(instruction_line)
-# print(matrix_line)
-# print(l_possible_matrix_line)
-# new_line = add_spaces_to_many_positions_in_line(l_possible_matrix_line, instruction_line, spaces_positions)
-# print(new_line)
-
 #create possibilities
 rows_possibilities = create_all_possibilities_for_all_lines(matrix,rows_instruction, is_row = True)
 cols_possibilities = create_all_possibilities_for_all_lines(matrix,cols_instruction, is_row = False)

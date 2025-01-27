@@ -268,6 +268,7 @@ def is_line_obsolete(l_matrix_line: np.ndarray, l_line_possibility: np.ndarray) 
     for matrix_index, matrix_item in enumerate(l_matrix_line):
         if (matrix_item == "#" or matrix_item == ".") and matrix_item != l_line_possibility[matrix_index]:
             return True
+    return False
 
 # delete possibilities of single line, which are already in conflict with partly solved matrix. Return the rest.
 def delete_obsolete_possibilities_for_line(l_matrix_line: np.ndarray, l_single_line_possibilities: np.ndarray) -> np.ndarray:

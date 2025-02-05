@@ -4,7 +4,7 @@ from multiprocessing import Pool, cpu_count
 from typing import List     # for Function Annotations in python 3.8
 
 # not optimized for large input, as "instruction4.txt"
-input_file = "instruction3.txt"
+input_file = "instruction2.txt"
 
 # Find number of rows and columns in instruction file.
 def find_dimensions() -> List[int]:
@@ -21,43 +21,43 @@ def find_dimensions() -> List[int]:
 def find_instructions_row(l_number_of_rows: int) -> List[List[int]]:
     with open(input_file, "r") as file:
         result = []
-        counter = 0
-        start_counter = False
+        no_of_lines_below_keyword = 0
+        was_keyword = False
         for line in file:
-            if "rows" in line:
-                start_counter = True
-            if start_counter:
-                if 0 < counter <= l_number_of_rows:
+            if "rows" in line:      # takes correct number of rows under the "rows" keyword
+                was_keyword = True
+            if was_keyword:
+                if 0 < no_of_lines_below_keyword <= l_number_of_rows:   # starts 1 line below keyword
                     raw_line = []
                     result_line = []
                     raw_line = re.findall(r'\d+', line)     # list of strings
                     for item in raw_line:
                         result_line.append(int(item))              # convert to list of int
                     result.append(result_line)
-                counter += 1
+                no_of_lines_below_keyword += 1
     return result
 
 # Finds instructions for columns in instruction file, output them as 2D list of int.
 def find_instructions_col(l_number_of_cols: int) -> List[List[int]]:
     with open(input_file, "r") as file:
         result = []
-        counter = 0
-        start_counter = False
+        no_of_lines_below_keyword = 0
+        was_keyword = False
         for line in file:
-            if "columns" in line:
-                start_counter = True
-            if start_counter:
-                if 0 < counter <= l_number_of_cols:
+            if "columns" in line:   # takes correct number of columns under the "columns" keyword
+                was_keyword = True
+            if was_keyword:
+                if 0 < no_of_lines_below_keyword <= l_number_of_cols:   # starts 1 line below keyword
                     raw_line = []
                     result_line = []
-                    raw_line = re.findall(r'\d+', line)
+                    raw_line = re.findall(r'\d+', line)     # list of strings
                     for item in raw_line:
-                        result_line.append(int(item))
+                        result_line.append(int(item))              # convert to list of int
                     result.append(result_line)
-                counter += 1
+                no_of_lines_below_keyword += 1
     return result
 
-# sum of all instruction for row must be equal to the sum of all columns instruction
+# sum of all rows instructions must be equal to the sum of all columns instructions
 def is_instruction_valid(l_rows_instruction, l_cols_instruction):
     sum_row = 0
     for row in l_rows_instruction:
@@ -71,33 +71,35 @@ def is_instruction_valid(l_rows_instruction, l_cols_instruction):
     if sum_row != sum_col:
         raise ValueError("sum of row instruction != sum of cols instruction")
 
-# Print solution matrix in nice way with col and row indexes
+# Print solution matrix with column and row indexes and separator every 5 rows and columns
 def print_matrix_debug(l_matrix) -> None:
+    # print column indexes
     print("    ", end="")
-    for idx, item in enumerate(l_matrix[0]):    #print col indexes
-        if idx % 5 == 0:
+    for idx, item in enumerate(l_matrix[0]):    # print col indexes
+        if idx % 5 == 0:                        # column separator at the beginning of the row and every 5 columns
             print("|  ", end="")
         print(idx, " ", end="")
-        if idx < 10:
+        if idx < 10:                            # 1 extra space for single digit indexes
             print(" ", end="")
     print()
+    # print matrix
     for idx, row in enumerate(l_matrix):
-        if idx%5 == 0:                          #row separator every 5 rows
+        if idx % 5 == 0:                        # row separator every 5 rows
             print("      ", end="")
             [print("----", end="") for item in l_matrix[0]]
             print()
-        print(idx, " ",end="")
-        if idx < 10:
+        print(idx, " ",end="")                  # row indexes
+        if idx < 10:                            # 1 extra space for single digit indexes
             print(" ",end="")
         for idy, item in enumerate(row):
-            if idy % 5 == 0:                    #col separator every 5 cols
+            if idy % 5 == 0:                    # column separator at the beginning of the row and every 5 columns
                 print("|  ", end="")
             print(item," ",end="")
-            if type(item) != int or item < 10:
+            if type(item) != int or item < 10:  # 1 extra space for single digit indexes
                 print(" ",end="")
-        print("|")
+        print("|")                              # separator at the end of every row
 
-# print final picture with only "#"
+# print final picture with only "#", so picture is clearly visible
 def print_picture(l_matrix):
     for row in l_matrix:
         for item in row:
@@ -105,52 +107,57 @@ def print_picture(l_matrix):
         print()
 
 # Line can be row or column of solution matrix.
-# If the line is densely occupied, there are overlaps in packs of cells, which must be painted "#"
+# Maximum length of the pack is according to the number in instructions.
+# If we move the whole pack to the one end of space available and then to the second end, there might be overlap.
+# This overlap must be painted "#". It occurs for large pack in lines with small extra spaces.
+# Function updates given line in solution matrix according to instructions for the same line
 def paint_overlap_in_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> None:
-    offset = 0
+    offset = 0      # minimal distance from the beginning of the line, where new pack can start
     for instruction_line_item in l_instruction_line:
-        overlap = instruction_line_item + sum(l_instruction_line) + len(l_instruction_line) - 1 - len(l_matrix_line)     #spaces = numbers in instruction(len()) -1
-        if overlap > 0:
-            for i in range(offset + instruction_line_item - overlap, offset + instruction_line_item):  # paint overlap in row
+        min_number_of_spaces = len(l_instruction_line) - 1      # at least 1 space between each packs of painted cells
+        min_number_of_occupied_cells = sum(l_instruction_line) + min_number_of_spaces
+        overlap = instruction_line_item + min_number_of_occupied_cells - len(l_matrix_line)
+        if overlap > 0:  # paint overlap number of cells in the middle of available space for the pack
+            for i in range(offset + instruction_line_item - overlap, offset + instruction_line_item):
                 l_matrix_line[i] = "#"
-        offset += instruction_line_item + 1
+        offset += instruction_line_item + 1     # mandatory space between each packs of painted cells
 
-# Paint all overlap for all rows and columns in solution matrix.
+# Paint all overlaps for all rows and columns in solution matrix.
 def paint_overlap (l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_cols_instruction: List[List[int]]) -> None:
     for row_index, row in enumerate(l_rows_instruction):
         paint_overlap_in_line(l_matrix[row_index,:], l_rows_instruction[row_index])
     for col_index, col in enumerate(l_cols_instruction):
         paint_overlap_in_line(l_matrix[:,col_index], l_cols_instruction[col_index])
 
-# Check, if line of solution matrix fulfill instruction.
+# Line can be row or column.
+# Checks, if line of solution matrix fulfill instruction line.
+# Counts the length of the packs of painted cells and compare it with the instruction line.
 def is_line_valid(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> bool:
-    groups = []
-    counter = 0
+    packs = []
+    no_of_hashes = 0
     was_hash = False
     is_hash = False
     for item in l_matrix_line:
         if item == "#":
             is_hash = True
-            counter += 1
+            no_of_hashes += 1                       # count number of painted cells in pack
         elif item == ".":
             is_hash = False
-        if is_hash == False and was_hash == True:
-            groups.append(counter)
-            counter = 0
+        if is_hash == False and was_hash == True:   # at the end of the pack, there is "." behind "#"
+            packs.append(no_of_hashes)              # saves the pack length
+            no_of_hashes = 0
         was_hash = is_hash
-    if l_matrix_line[-1] == "#":
-        groups.append(counter)
-    return groups == l_instruction_line
+    if l_matrix_line[-1] == "#":                    # Pack can end at the end of the line, so there is no "." behind the pack
+        packs.append(no_of_hashes)
+    return packs == l_instruction_line              # compares packs lengths with instruction line
 
-# Check, if solution matrix fulfill instruction.
+# Check, if each row and column of solution matrix fulfill instructions.
 def is_solution_valid(l_matrix: np.ndarray, l_rows_instruction: List[List[int]], l_cols_instruction: List[List[int]]) -> bool:
     for row_index, row in enumerate(l_rows_instruction):
-        l_matrix_line = l_matrix[row_index,:]
-        if not is_line_valid(l_matrix_line, l_rows_instruction[row_index]):
+        if not is_line_valid(l_matrix[row_index,:], l_rows_instruction[row_index]):
             raise ValueError(f"solution not valid in row {row_index}")
     for col_index, row in enumerate(l_cols_instruction):
-        l_matrix_line = l_matrix[:,col_index]
-        if not is_line_valid(l_matrix_line, l_cols_instruction[col_index]):
+        if not is_line_valid(l_matrix[:,col_index], l_cols_instruction[col_index]):
             raise ValueError(f"solution not valid in row {col_index}")
     return True
 

@@ -161,28 +161,30 @@ def is_solution_valid(l_matrix: np.ndarray, l_rows_instruction: List[List[int]],
             raise ValueError(f"solution not valid in row {col_index}")
     return True
 
-# First solution for the line, all packs of cells are as left as possible.
-# Only necessary spaces between packs are inserted.
+# Returns the first solution for the line,
+# all packs of cells are as close to the beginning of the line as possible
+# Only 1 space between each pack is inserted.
 # Only instructions for given line are considered. Independent of other lines.
 def get_line_without_extra_spaces(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
-    result = np.array([col for col in range(len(l_matrix_line))], dtype=object)
-    matrix_line_index = 0
+    result = np.array([col for col in range(len(l_matrix_line))], dtype=object)     # empty line
+    offset = 0                  # minimal distance from the beginning of the line, where new pack can start
     for instruction_line_index, instruction_line_item in enumerate(l_instruction_line):
-        for i in range(matrix_line_index, matrix_line_index + instruction_line_item):
+        for i in range(offset, offset + instruction_line_item):
             result[i] = "#"
-            matrix_line_index += 1
+            offset += 1
         if instruction_line_index < len(l_instruction_line) - 1:    #no space behind last instruction
-            result[matrix_line_index] = "."                         #space behind every instruction
-            matrix_line_index += 1
+            result[offset] = "."                                    #space behind every instruction
+            offset += 1
     return result
 
-# generate list of all combinations how to distribute extra spaces to positions
+# generate list of all combinations how to distribute the fixed number of extra spaces to the fixed number of positions
+# for example one of the combination of 6 spaces to 5 positions: [2,0,4,0,0], 2 spaces on 0th position and 4 spaces to 2nd position
 def generate_combinations(l_spaces: int, l_positions: int) -> np.ndarray:
-    def helper(spaces_left, current_combination, current_position):
-        if spaces_left == 0:
+    def helper(spaces_left: int, current_combination: List[int] , current_position: int):
+        if spaces_left == 0:                    # stop if we run out of spaces
             l_combinations.append(current_combination[:])
             return
-        if current_position >= l_positions:
+        if current_position >= l_positions:     # stop if we run out of positions
             return
         for i in range(spaces_left + 1):
             current_combination[current_position] = i
@@ -194,22 +196,26 @@ def generate_combinations(l_spaces: int, l_positions: int) -> np.ndarray:
     helper(l_spaces, initial_combination, 0)
     return np.array(l_combinations)
 
-# Add extra spaces to positions according the list of combinations
-# for example [2,0,4,0,0], 2 spaces on 0th position and 4 spaces to 2nd position
+# Takes line without extra spaces and
+# add extra spaces to positions according the single combination (spaces_positions)
+# for example for combination [2,0,4,0,0], add 2 spaces on 0th position and 4 spaces to 2nd position
+# output 1 possible solution for matrix line
 def add_spaces_to_positions_in_line(l_possible_matrix_line: np.ndarray, l_instruction_line: List[int], spaces_positions: List[int]) -> np.ndarray:
-    result = l_possible_matrix_line
+    result = l_possible_matrix_line.copy()
     inserted_spaces = 0
     for combination_index, combination_of_spaces in enumerate(spaces_positions):
-        if combination_index == 0:  #extra spaces at the beginning
-            position = 0 + inserted_spaces
+        if combination_index == 0:      #extra spaces at the beginning
+            position = inserted_spaces
         else:
             position = sum(l_instruction_line[:combination_index]) + combination_index -1 + inserted_spaces
         for space in range(combination_of_spaces):
             result = np.insert(result, position, ".")
             inserted_spaces += 1
+    # We inserted spaces to the line. Extra elements at the end should be numbers, obsolete col indexes.
+    # Check, if extra elements, which will be cut away, are not painted cells or spaces.
     if (result[-inserted_spaces] == "#" or result[-inserted_spaces] == ".") and inserted_spaces > 0:
         raise ValueError("Too much spaces inserted. The extra element is . or # ")
-    return result[:len(l_possible_matrix_line)]
+    return result[:len(l_possible_matrix_line)]     # Cuts extra elements at the end of the line.
 
 # 2D array of all possible solutions for single line. Each row is valid solution to the line according to instructions
 # All solutions belongs to specific line, solved independently of other lines (rows or columns)

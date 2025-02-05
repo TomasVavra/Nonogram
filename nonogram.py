@@ -4,7 +4,7 @@ from multiprocessing import Pool, cpu_count
 from typing import List     # for Function Annotations in python 3.8
 
 # not optimized for large input, as "instruction4.txt"
-input_file = "instruction2.txt"
+input_file = "instruction3.txt"
 
 # Find number of rows and columns in instruction file.
 def find_dimensions() -> List[int]:
@@ -179,12 +179,12 @@ def get_line_without_extra_spaces(l_matrix_line: np.ndarray, l_instruction_line:
 
 # generate list of all combinations how to distribute the fixed number of extra spaces to the fixed number of positions
 # for example one of the combination of 6 spaces to 5 positions: [2,0,4,0,0], 2 spaces on 0th position and 4 spaces to 2nd position
-def generate_combinations(l_spaces: int, l_positions: int) -> np.ndarray:
+def generate_combinations(l_spaces: int, l_no_of_positions: int) -> np.ndarray:
     def helper(spaces_left: int, current_combination: List[int] , current_position: int):
         if spaces_left == 0:                    # stop if we run out of spaces
-            l_combinations.append(current_combination[:])
+            l_combinations.append(current_combination.copy())
             return
-        if current_position >= l_positions:     # stop if we run out of positions
+        if current_position >= l_no_of_positions:     # stop if we run out of positions
             return
         for i in range(spaces_left + 1):
             current_combination[current_position] = i
@@ -192,44 +192,47 @@ def generate_combinations(l_spaces: int, l_positions: int) -> np.ndarray:
             current_combination[current_position] = 0  # Reset for the next iteration
 
     l_combinations = []
-    initial_combination = [0] * l_positions
+    initial_combination = [0] * l_no_of_positions
     helper(l_spaces, initial_combination, 0)
     return np.array(l_combinations)
 
 # Takes line without extra spaces and
-# add extra spaces to positions according the single combination (spaces_positions)
+# add extra spaces to positions according the single combination (l_single_combination_of_spaces)
 # for example for combination [2,0,4,0,0], add 2 spaces on 0th position and 4 spaces to 2nd position
 # output 1 possible solution for matrix line
-def add_spaces_to_positions_in_line(l_possible_matrix_line: np.ndarray, l_instruction_line: List[int], spaces_positions: List[int]) -> np.ndarray:
+def add_spaces_to_positions_in_line(l_possible_matrix_line: np.ndarray, l_instruction_line: List[int], l_single_combination_of_spaces: List[int]) -> np.ndarray:
     result = l_possible_matrix_line.copy()
     inserted_spaces = 0
-    for combination_index, combination_of_spaces in enumerate(spaces_positions):
+    for combination_index, no_of_spaces_to_insert in enumerate(l_single_combination_of_spaces):
         if combination_index == 0:      #extra spaces at the beginning
             position = inserted_spaces
         else:
-            position = sum(l_instruction_line[:combination_index]) + combination_index -1 + inserted_spaces
-        for space in range(combination_of_spaces):
+            position = sum(l_instruction_line[:combination_index]) + combination_index - 1 + inserted_spaces
+        for space in range(no_of_spaces_to_insert):
             result = np.insert(result, position, ".")
             inserted_spaces += 1
     # We inserted spaces to the line. Extra elements at the end should be numbers, obsolete col indexes.
     # Check, if extra elements, which will be cut away, are not painted cells or spaces.
+    # to do: check all deleted elements and check, if there is no col indexes left in the remaining line
     if (result[-inserted_spaces] == "#" or result[-inserted_spaces] == ".") and inserted_spaces > 0:
         raise ValueError("Too much spaces inserted. The extra element is . or # ")
     return result[:len(l_possible_matrix_line)]     # Cuts extra elements at the end of the line.
 
-# 2D array of all possible solutions for single line. Each row is valid solution to the line according to instructions
-# All solutions belongs to specific line, solved independently of other lines (rows or columns)
+# 2D array of all possible solutions for single line. Each row is valid solution to the line according to the instructions
+# It takes line without extra spaces and fill in extra spaces according to the single combination of spaces.
+# And repeats it for all possible solutions for single line.
+# All solutions belong to specific line, solved independently of other lines (rows or columns)
 def create_all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_line: List[int]) -> np.ndarray:
     result = []
-    extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)
-    positions = len(l_instruction_line)+1
     line_without_extra_spaces = get_line_without_extra_spaces(l_matrix_line, l_instruction_line)
+    extra_spaces = len(l_matrix_line) - (sum(l_instruction_line) + len(l_instruction_line) - 1)     # extra spaces to fill line_without_extra_spaces
+    no_of_positions = len(l_instruction_line) + 1
 
-    combinations_of_spaces = generate_combinations(extra_spaces, positions)
+    all_combinations_of_spaces = generate_combinations(extra_spaces, no_of_positions)
     # count = 0       # for debugging, number of all combinations
-    for spaces_positions in combinations_of_spaces:
-        possible_line = add_spaces_to_positions_in_line(line_without_extra_spaces,l_instruction_line, spaces_positions)
-        if not is_line_obsolete(l_matrix_line, possible_line):      #check possible line with matrix
+    for single_combination_of_spaces in all_combinations_of_spaces:
+        possible_line = add_spaces_to_positions_in_line(line_without_extra_spaces,l_instruction_line, single_combination_of_spaces)
+        if not is_line_obsolete(l_matrix_line, possible_line):      # check, if possible line is not in conflict with partly solved matrix
             result.append(possible_line)
     #         count += 1
     #         if count % 10000 == 0:
@@ -238,6 +241,7 @@ def create_all_possibilities_for_line(l_matrix_line: np.ndarray, l_instruction_l
     return np.array(result)
 
 # All solutions for individual lines are created in parallel on multiple cpu cores
+# Each line (row or column) is solved in it's cpu core.
 def worker_task(l_matrix_line: np.ndarray, instruction_line: List[int], line_index: int, is_row: bool) -> np.ndarray:
     result = create_all_possibilities_for_line(l_matrix_line, instruction_line)
     if is_row:

@@ -229,18 +229,18 @@ def create_all_possibilities_for_line(matrix_line: np.ndarray, instruction_line:
     no_of_positions = len(instruction_line) + 1
 
     all_combinations_of_spaces = generate_combinations(extra_spaces, no_of_positions)
-    # count = 0       # for debugging, number of all combinations
+    # no_of_combinations = 0       # for debugging, number of all combinations
     for single_combination_of_spaces in all_combinations_of_spaces:
         possible_line = add_spaces_to_positions_in_line(line_without_extra_spaces,instruction_line, single_combination_of_spaces)
         if not is_line_obsolete(matrix_line, possible_line):      # check, if possible line is not in conflict with partly solved matrix
             result.append(possible_line)
-    #         count += 1
-    #         if count % 10000 == 0:
-    #             print(count)
-    # print(count)
+    #         no_of_combinations += 1
+    #         if no_of_combinations % 10000 == 0:
+    #             print(no_of_combinations)
+    # print(no_of_combinations)
     return np.array(result)
 
-# All solutions for individual lines are created in parallel on multiple cpu cores
+# All solutions for individual lines are created in parallel on multiple cpu cores.
 # Each line (row or column) is solved in it's cpu core.
 def worker_task(matrix_line: np.ndarray, instruction_line: List[int], line_index: int, is_row: bool) -> np.ndarray:
     result = create_all_possibilities_for_line(matrix_line, instruction_line)
@@ -266,9 +266,11 @@ def create_all_possibilities_for_all_lines(matrix: np.ndarray, rows_or_cols_inst
 
     return result
 
-# Go through all possible solutions of single line. Paint cells, which are always "#" or ".".
+# Go through all possible solutions of single line. Find cells, which are always "#" or "."
+# write 100% sure cells to solution matrix line
 def possibilities_overlap_for_line(matrix_line: np.ndarray, single_line_possibilities: np.ndarray):
     for col_index_in_possibilities in range(len(matrix_line)):
+        # check, if specific element in all possibilities is the same as the element in first possibility
         all_same = np.all(single_line_possibilities[:,col_index_in_possibilities] == single_line_possibilities[0,col_index_in_possibilities])
         if all_same:
             matrix_line[col_index_in_possibilities] = single_line_possibilities[0,col_index_in_possibilities]
@@ -282,18 +284,20 @@ def possibilities_overlap(matrix: np.ndarray, all_rows_possibilities: List[np.nd
 
 # Is possible solution for line in conflict with partly solved matrix?
 def is_line_obsolete(matrix_line: np.ndarray, line_possibility: np.ndarray) -> bool:
-    for matrix_index, matrix_item in enumerate(matrix_line):
-        if (matrix_item == "#" or matrix_item == ".") and matrix_item != line_possibility[matrix_index]:
+    for matrix_index_in_line, matrix_item in enumerate(matrix_line):
+        if (matrix_item == "#" or matrix_item == ".") and matrix_item != line_possibility[matrix_index_in_line]:
             return True
     return False
 
-# delete possibilities of single line, which are already in conflict with partly solved matrix. Return the rest.
+
+# Takes all possibilities for single line. Check, if some of them are in conflict with partly solved matrix and
+# deletes them from list of all possibilities.
 def delete_obsolete_possibilities_for_line(matrix_line: np.ndarray, single_line_possibilities: np.ndarray) -> np.ndarray:
-    rows_to_delete = []
+    indexes_of_rows_to_delete = []
     for row_index, row in enumerate(single_line_possibilities):
         if is_line_obsolete(matrix_line, np.array(row)):
-            rows_to_delete.append(row_index)
-    result = np.delete(single_line_possibilities, rows_to_delete, axis=0)
+            indexes_of_rows_to_delete.append(row_index)
+    result = np.delete(single_line_possibilities, indexes_of_rows_to_delete, axis=0)
     return result
 
 # delete possibilities of all lines (all rows or all cols), which are already in conflict with partly solved matrix. Return the rest.

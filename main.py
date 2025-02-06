@@ -1,3 +1,4 @@
+import numpy as np
 from helpers import *
 
 if __name__ == "__main__":

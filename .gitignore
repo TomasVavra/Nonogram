@@ -1,5 +1,10 @@
 # Ignore the .idea directory (for JetBrains IDEs like PyCharm) 
-.idea/ 
+.idea/
+
 # Ignore the virtual environment directory 
 .venv/
 .git/
+
+# Ignore Python bytecode
+__pycache__/
+

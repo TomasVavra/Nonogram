@@ -2,8 +2,8 @@ import numpy as np
 from helpers import *
 
 if __name__ == "__main__":
-    # not optimized for large input, as "instruction4.txt"
-    input_file = "instruction2.txt"
+    # not optimized for large input, as "instruction4.txt" or "instruction5.txt"
+    input_file = "instruction3.txt"
 
     dimension = find_dimensions(input_file)
     number_of_rows = dimension[0]
